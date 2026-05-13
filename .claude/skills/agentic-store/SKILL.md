@@ -17,6 +17,22 @@ Cada template é um `.md` com **YAML frontmatter** (`id`, `nome`, `descricao_cur
 
 Execute em ordem. Se algo falhar, **PARE** e reporte — não tente consertar sozinho.
 
+### 0. Preflight — verificar MCP Pipefy
+
+Antes de qualquer coisa, confirme que o MCP `pipefy` está registrado e conectado:
+
+```bash
+claude mcp get pipefy 2>&1
+```
+
+- Se o comando falhar (exit != 0) ou a saída **não** contiver `✓ Connected`, o MCP não está pronto. Avise o usuário em uma frase:
+
+  > O MCP Pipefy não está instalado/conectado. Vou rodar a skill `install-pipefy-mcp` primeiro.
+
+  E então **invoque a skill `install-pipefy-mcp`** via `Skill` tool (sem perguntar antes — é dependência dura). Quando ela terminar, lembre o usuário de **reiniciar o Claude Code** se as tools `mcp__pipefy__*` ainda não estiverem disponíveis nesta sessão, e **pare** este fluxo aqui (ele vai reinvocar `/agentic-store` depois do restart).
+
+- Se a saída contiver `✓ Connected`, siga para o passo 1 sem dizer nada.
+
 ### 1. Listar templates e ler frontmatter
 
 Um único comando bash lista todos os `.md` e despeja o frontmatter de cada um, separados por marcadores `===URL`. Prefira `gh api` (autenticado); se falhar, use `curl`.
