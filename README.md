@@ -10,6 +10,7 @@ Cada template descreve um pipe completo — fases, campos, AI Agents e relaçõe
 .
 ├── README.md                            # Este arquivo
 ├── AGENTS.md                            # Guia para agentes de IA que editam o repo
+├── INSTALL-SKILL.md                     # Instruções de instalação da skill
 ├── INSTALL-MCP.md                       # Instruções de instalação do MCP do Pipefy
 ├── templates/                           # Catálogo de templates clonáveis (.md)
 │   └── onboarding-clientes-b2b.md
@@ -26,9 +27,9 @@ Instale a skill `agentic-store` no seu Claude Code para ter o comando `/agentic-
 
 Cole isto numa sessão do Claude Code:
 
-> Instale a skill agentic-store do repositório maurivan/pipefy-agentic-store e me pergunte se quer global ou só neste projeto
+> Instale a skill agentic-store do repositório maurivan/pipefy-agentic-store seguindo as instruções de INSTALL-SKILL.md
 
-O Claude vai te perguntar o escopo (global em `~/.claude/skills/` ou só neste projeto em `./.claude/skills/`), baixar o `SKILL.md` direto do `main` no caminho escolhido e te avisar pra reiniciar.
+O Claude busca o [`INSTALL-SKILL.md`](./INSTALL-SKILL.md) deste repo, te pergunta o escopo (global em `~/.claude/skills/` ou só no projeto em `./.claude/skills/`), baixa o `SKILL.md` direto do `main` no caminho escolhido e te avisa pra reiniciar.
 
 ### Opção 2 — Manual no terminal
 
