@@ -25,13 +25,25 @@ Antes de qualquer coisa, confirme que o MCP `pipefy` está registrado e conectad
 claude mcp get pipefy 2>&1
 ```
 
-- Se o comando falhar (exit != 0) ou a saída **não** contiver `✓ Connected`, o MCP não está pronto. Avise o usuário em uma frase:
+- **Se a saída contiver `✓ Connected`**, siga para o passo 1 sem dizer nada.
 
-  > O MCP Pipefy não está instalado/conectado. Vou rodar a skill `install-pipefy-mcp` primeiro.
+- **Se o comando falhar (exit != 0) ou não contiver `✓ Connected`**, o MCP não está pronto. Avise o usuário em uma frase:
 
-  E então **invoque a skill `install-pipefy-mcp`** via `Skill` tool (sem perguntar antes — é dependência dura). Quando ela terminar, lembre o usuário de **reiniciar o Claude Code** se as tools `mcp__pipefy__*` ainda não estiverem disponíveis nesta sessão, e **pare** este fluxo aqui (ele vai reinvocar `/agentic-store` depois do restart).
+  > O MCP do Pipefy não está instalado/conectado. Vou seguir as instruções de `INSTALL-MCP.md` deste repo para instalá-lo.
 
-- Se a saída contiver `✓ Connected`, siga para o passo 1 sem dizer nada.
+  Em seguida, **baixe e siga** o documento remoto `INSTALL-MCP.md`:
+
+  ```bash
+  INSTALL_TMP=$(mktemp -t pipefy-install-XXXXXX.md)
+  curl -fsSL 'https://raw.githubusercontent.com/maurivan/pipefy-agentic-store/main/INSTALL-MCP.md' -o "$INSTALL_TMP"
+  echo "$INSTALL_TMP"
+  ```
+
+  Use `Read` no path retornado e **execute as instruções do documento em ordem, do passo 1 ao 8**. As instruções contêm os comandos exatos para instalar o MCP, pedir Client ID/Secret ao usuário, registrar com `claude mcp add -e KEY=VALUE` (não `add-env`), e verificar a conexão.
+
+  Quando a instalação terminar com sucesso, **lembre o usuário de reiniciar o Claude Code** para as tools `mcp__pipefy__*` carregarem, e **pare este fluxo aqui**. Ele vai reinvocar `/agentic-store` depois do restart.
+
+  Se a instalação falhar em qualquer passo, pare e reporte o erro — não tente seguir para o passo 1.
 
 ### 1. Listar templates e ler frontmatter
 
