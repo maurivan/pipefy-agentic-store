@@ -1,34 +1,65 @@
 ---
 name: agentic-store
-description: Clona um template de processo do Pipefy (pipe + fases + campos + AI Agents + relações) escolhido interativamente da pasta `templates/` do projeto, usando o MCP pipefy.
+description: Clona um template de processo do Pipefy (pipe + fases + campos + AI Agents + relações) escolhido interativamente do repositório remoto `maurivan/pipefy-agentic-store` no GitHub, usando o MCP pipefy.
 ---
 
 # Agentic Store — Clonagem de Templates de Processo no Pipefy
 
 Você é um agente que clona templates de processo no Pipefy. Use o MCP `pipefy` conectado para executar a tarefa abaixo.
 
-A pasta de templates fica em `<repo_root>/templates/` e contém arquivos `.md` com **YAML frontmatter** descrevendo o template (campos: `id`, `nome`, `descricao_curta`, `categoria`, `fases_count`, `campos_count`, `requer_ai_agents`, etc.) seguido do conteúdo do template a clonar.
+Os templates ficam na pasta `templates/` do repositório público no GitHub:
+**https://github.com/maurivan/pipefy-agentic-store/tree/main/templates**
+
+Cada arquivo `.md` tem **YAML frontmatter** descrevendo o template (campos: `id`, `nome`, `descricao_curta`, `categoria`, `fases_count`, `campos_count`, `requer_ai_agents`, `icone`, etc.) seguido do conteúdo do template a clonar.
+
+## Constantes
+
+- **Owner/repo:** `maurivan/pipefy-agentic-store`
+- **Branch:** `main`
+- **Pasta de templates:** `templates`
+- **API de listagem:** `https://api.github.com/repos/maurivan/pipefy-agentic-store/contents/templates?ref=main`
+- **Raw URL base:** `https://raw.githubusercontent.com/maurivan/pipefy-agentic-store/main/templates/`
 
 ## Fluxo da skill
 
 Execute os passos **em ordem**. Não pule etapas. Se algo falhar, **PARE** e reporte — não tente consertar sozinho.
 
-### Passo 1 — Descobrir templates disponíveis
+### Passo 1 — Descobrir templates remotos
 
-Liste os arquivos `.md` em `templates/`:
+Liste os arquivos `.md` na pasta `templates` do repo via GitHub API. Prefira `gh api` (autenticado, sem rate limit prático). Se `gh` não estiver disponível, caia para `curl` no endpoint público (rate limit 60/h por IP).
+
+Comando preferido:
 
 ```bash
-ls -1 templates/*.md 2>/dev/null
+gh api repos/maurivan/pipefy-agentic-store/contents/templates?ref=main \
+  --jq '.[] | select(.name | endswith(".md")) | "\(.name)\t\(.download_url)"'
 ```
 
-Se a pasta estiver vazia ou não existir, avise o usuário e pare.
+Fallback (se `gh` falhar ou estiver deslogado):
 
-Para cada template encontrado, leia apenas o **frontmatter** (use `Read` com `limit: 20`, ou `sed -n '1,/^---$/p'` no Bash) e extraia:
+```bash
+curl -fsSL "https://api.github.com/repos/maurivan/pipefy-agentic-store/contents/templates?ref=main" \
+  | python3 -c "import sys,json; [print(f\"{x['name']}\t{x['download_url']}\") for x in json.load(sys.stdin) if x['name'].endswith('.md')]"
+```
+
+Se a resposta vier vazia ou com erro de rate limit (`HTTP 403 X-RateLimit-Remaining: 0`), avise o usuário e pare.
+
+Para **cada** arquivo `.md` listado, baixe **apenas as primeiras ~25 linhas** (o frontmatter) com:
+
+```bash
+curl -fsSL --range 0-2048 "<download_url>" 2>/dev/null | sed -n '1,/^---$/p'
+```
+
+> O `--range` evita baixar o template inteiro só para ler metadata. Se o servidor não respeitar Range para conteúdo do raw.githubusercontent, baixe o arquivo inteiro mesmo — não é grande.
+
+Do frontmatter, extraia:
 - `nome` (label amigável)
 - `descricao_curta` (descrição)
 - `fases_count` e `campos_count` (para mostrar tamanho)
 - `requer_ai_agents` (badge se true)
 - `icone` (se houver)
+
+Guarde também o `download_url` (raw URL) de cada template — você vai precisar dele no Passo 3.
 
 ### Passo 2 — Apresentar a escolha ao usuário
 
@@ -38,16 +69,24 @@ Cada opção deve ter:
 - `label`: `{icone} {nome}` (max 5 palavras)
 - `description`: `{descricao_curta} — {fases_count} fases, {campos_count} campos{, com AI Agents se requer_ai_agents=true}`
 
-### Passo 3 — Ler o template completo
+### Passo 3 — Baixar o template completo
 
-Após a escolha, leia o arquivo `.md` inteiro com `Read`. Esse será o **TEMPLATE A CLONAR** usado nas regras de execução abaixo.
+Após a escolha, baixe o `.md` completo via raw URL para um arquivo temporário e leia com `Read`:
+
+```bash
+TEMPLATE_TMP=$(mktemp -t agentic-store-XXXXXX.md)
+curl -fsSL -o "$TEMPLATE_TMP" "<download_url_do_template_escolhido>"
+echo "$TEMPLATE_TMP"
+```
+
+Em seguida use `Read` no path retornado pelo `mktemp` para carregar o conteúdo completo. Esse será o **TEMPLATE A CLONAR** usado nas regras de execução abaixo. **Não escreva esse arquivo no repositório local nem o commite** — é só cache em `/tmp` e pode ser deletado ao final.
 
 ### Passo 4 — Detectar variáveis e coletar valores
 
-Faça um grep no conteúdo do template para encontrar todos os placeholders `{{ variavel }}`:
+Faça um grep no arquivo temporário do Passo 3 para encontrar todos os placeholders `{{ variavel }}`:
 
 ```bash
-grep -oE '\{\{ *[a-zA-Z_][a-zA-Z0-9_]* *\}\}' <arquivo_escolhido> | sort -u
+grep -oE '\{\{ *[a-zA-Z_][a-zA-Z0-9_]* *\}\}' "$TEMPLATE_TMP" | sort -u
 ```
 
 Para cada variável encontrada, peça o valor ao usuário em **uma única mensagem** (lista numerada com todas as variáveis). Sugestões de defaults razoáveis quando aplicável:
