@@ -94,23 +94,26 @@ Use `Read` no path retornado. **Não escreva o template no repo nem commite** �
 
 ### 4. Coletar variáveis
 
-Detecte placeholders:
+O bloco `variaveis:` do frontmatter é a **fonte única** de variáveis do template. Não faça grep nos `{{ ... }}` do corpo — confie no schema declarado.
 
-```bash
-grep -oE '\{\{ *[a-zA-Z_][a-zA-Z0-9_]* *\}\}' "$TEMPLATE_TMP" | sort -u
-```
+Para cada entrada em `variaveis:`, respeite:
 
-Numa **única mensagem**, liste todas as variáveis numeradas e peça os valores ao usuário. Não invente defaults rígidos — use o frontmatter ou pergunte direto. Variáveis vazias viram `""`.
+- `label` — texto da pergunta ao usuário (não use o `nome` técnico).
+- `tipo` — `string`, `email`, `number`, `select`. Para `select`, ofereça apenas os valores em `opcoes`.
+- `default` — sugira como valor padrão; se o usuário não responder explicitamente, aplique.
+- `obrigatorio` — se `true` e o usuário deixar vazio, repergunte. Se `false`, vazio vira `""` e passos dependentes podem ser pulados (ver passo 6).
+- `min` / `max` — valide faixa em `number`.
+- `placeholder` — mostre como exemplo de formato.
 
-Quando o usuário responder, **substitua todas as `{{ variavel }}` no conteúdo** antes de qualquer chamada ao MCP.
+Numa **única mensagem**, liste todas as variáveis numeradas com seus `label`, `tipo`, `default` (se houver) e marque as obrigatórias. Quando o usuário responder, **substitua todas as `{{ variavel }}` no conteúdo** antes de qualquer chamada ao MCP.
 
 ### 5. Plano em 5 linhas + aprovação
 
 Mostre exatamente 5 linhas:
 
 1. `Vou clonar "<nome>" (<fases_count> fases, <campos_count> campos)`
-2. Total estimado de tool calls
-3. Ordem: pipe → fases → campos por fase → AI agents → pipe_relation (se aplicável)
+2. Total estimado de tool calls (some labels + condições + emails + automações se as seções existirem)
+3. Ordem: pipe → labels → fases → campos → field_conditions → email_templates → automações → AI agents → pipe_relation (se aplicável)
 4. Variáveis aplicadas (resumo curto)
 5. Avisos / passos que serão pulados
 
@@ -119,24 +122,39 @@ Mostre exatamente 5 linhas:
 ### 6. Executar clonagem
 
 1. **Criar o pipe** com `preferences.aiAgentsEnabled = true`. Guarde `pipe_id`.
-2. **Criar fases** na ordem definida pelo campo `ordem`. Guarde cada `phase_id`.
-3. **Para cada fase, criar TODOS os campos antes de avançar pra próxima.**
-4. **Para cada AI Agent:**
+2. **Para cada label em `labels:`** (pule se a seção não existir):
+   - `create_label(pipe_id, name, color)` — `color` é hex `#RRGGBB`.
+   - Guarde `label_id` por id lógico (ex: `urgente` → `987654`).
+3. **Criar fases** na ordem definida pelo campo `ordem`. Guarde cada `phase_id`.
+4. **Para cada fase, criar TODOS os campos antes de avançar pra próxima.** Guarde `field_id` (e `field_internal_id`) por id lógico do campo.
+5. **Para cada condição em `condicoes_campo:`** (pule se a seção não existir):
+   - Resolva `fase`, `campo_alvo`, `quando.campo` para IDs reais.
+   - Na primeira chamada, `introspect_mutation('createFieldCondition')` pra descobrir o shape exato do input (Pipefy pode usar `EQUALS` em maiúsculas ou outro formato de operador).
+   - `create_field_condition` com os parâmetros normalizados.
+6. **Para cada email_template em `email_templates:`** (pule se a seção não existir):
+   - Substitua `{{ variavel }}` em `assunto`, `corpo` e `de` — mas **mantenha literais** `{{ card.<campo> }}` (são resolvidos pelo Pipefy em runtime).
+   - Não há tool MCP dedicada — use `introspect_mutation('createEmailTemplate')` (ou `search_schema('email template')`) pra descobrir a forma do input e crie via `execute_graphql`.
+   - Guarde `email_template_id` por id lógico (ex: `alerta-sla` → `12345`).
+7. **Para cada automação em `automacoes:`** (pule se a seção não existir):
+   - Uma vez por pipe, chame `get_automation_events(pipe_id)` e `get_automation_actions(pipe_id)` pra validar `event_ids`/`action_types` suportados; cache os resultados.
+   - Resolva referências antes de criar: `quando.fase` → `phase_id` real; `entao.template` → `email_template_id` real; `entao.label` → `label_id` real; `{{ card.<campo> }}` permanece literal.
+   - Se `entao.tipo == email`, use `create_send_task_automation` apontando para o template criado (parâmetros típicos: pipe_id, name, event/phase, email_template_id, destinatário).
+   - Outros tipos (`move_card`, `update_field`, `add_label`, etc) → use `create_automation` com o `action_type` retornado por `get_automation_actions`.
+8. **Para cada AI Agent:**
    - `get_pipe(pipe_id)` → pegue `pipe.uuid` como `repo_uuid`
-   - `get_automation_events(pipe_id)` → valide `event_ids`
-   - `get_automation_actions(pipe_id)` → valide `action_types`
+   - `get_automation_events(pipe_id)` / `get_automation_actions(pipe_id)` — reaproveite os caches do passo 7 se já feitos.
    - `create_ai_agent(name, instruction, repo_uuid, behaviors)`
-5. **pipe_relation:** se a variável `pipe_suporte_id` (ou equivalente) estiver vazia, PULE.
-6. **Mantenha mapa de IDs lógicos → IDs reais** (ex: `contrato-assinado` → `308452691`) e referencie nas chamadas seguintes.
-7. **Após cada tool call bem-sucedida**, uma linha curta de status (ex: `✓ Fase "Pré-kickoff" criada — id 308452691`).
-8. **Sequencial, sem paralelismo** — fases/campos/agents têm dependências entre si.
-9. **Falhou? Pare e reporte** com o erro completo. Não tente consertar.
+9. **pipe_relation:** se a variável `pipe_suporte_id` (ou equivalente) estiver vazia, PULE.
+10. **Mantenha mapa de IDs lógicos → IDs reais** (labels, fases, campos, email_templates, automações) e referencie nas chamadas seguintes.
+11. **Após cada tool call bem-sucedida**, uma linha curta de status (ex: `✓ Email template "alerta-sla" criado — id 12345`).
+12. **Sequencial, sem paralelismo** — todas as etapas têm dependências (labels antes de automações com `add_label`; field_conditions depois de fields; email_templates antes de automações).
+13. **Falhou? Pare e reporte** com o erro completo. Não tente consertar.
 
 ### 7. Relatório final
 
 - `pipe_id`
 - URL: `https://app.pipefy.com/pipes/<pipe_id>`
-- Contagem: fases, campos, AI agents criados
+- Contagem: labels, fases, campos, condições de campo, email templates, automações, AI agents criados
 - Avisos / partes puladas
 
 ## Regras
