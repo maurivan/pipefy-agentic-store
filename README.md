@@ -2,7 +2,7 @@
 
 Loja pública de **templates de processo do Pipefy** que podem ser clonados em segundos no seu workspace via [Claude Code](https://claude.com/claude-code) + [MCP do Pipefy](https://github.com/gbrlcustodio/pipefy-mcp-server).
 
-Cada template descreve um pipe completo — fases, campos, AI Agents e relações entre pipes — em um único arquivo Markdown com YAML frontmatter. O Claude Code lê o template, pede as variáveis ao usuário e cria tudo no Pipefy via MCP.
+Cada template descreve um pipe completo — labels, database tables, fases, campos, field conditions, automações, AI Agents, pipe relations e webhooks — em um único arquivo Markdown com YAML frontmatter. O Claude Code lê o template, pede as variáveis ao usuário e cria tudo no Pipefy via MCP.
 
 ## O que tem aqui
 
@@ -10,12 +10,14 @@ Cada template descreve um pipe completo — fases, campos, AI Agents e relaçõe
 .
 ├── README.md                            # Este arquivo
 ├── AGENTS.md                            # Guia para agentes de IA que editam o repo
-├── INSTALL-SKILL.md                     # Instruções de instalação da skill
+├── INSTALL-SKILL.md                     # Instruções de instalação da skill agentic-store
 ├── INSTALL-MCP.md                       # Instruções de instalação do MCP do Pipefy
 ├── templates/                           # Catálogo de templates clonáveis (.md)
-│   └── onboarding-clientes-b2b.md
+│   ├── esteira-de-credito.md
+│   ├── gestao-fornecedores-homologacao.md
+│   ├── onboarding-clientes-b2b.md
+│   └── simples-aprovacao-despesas.md
 └── .claude/skills/
-    ├── install-pipefy-mcp/              # Skill local para instalar o MCP (opcional)
     └── agentic-store/                   # Skill principal — lista e clona templates
 ```
 
@@ -72,8 +74,8 @@ Ponto. A skill cuida do resto:
 3. **Pergunta qual clonar** via menu interativo.
 4. **Detecta os placeholders `{{ variavel }}`** do template e pede os valores numa única mensagem.
 5. **Mostra um plano em 5 linhas** e **espera sua aprovação** (`pode executar`).
-6. **Cria** pipe → fases → campos → AI Agents → pipe_relations na ordem certa.
-7. **Devolve** `pipe_id`, URL do pipe e contagem do que foi criado.
+6. **Cria** na ordem certa: pipe → labels → database tables → fases → campos → field conditions → automações → AI agents → pipe relation → webhooks.
+7. **Devolve** `pipe_id`, URL do pipe, contagem do que foi criado e TODOs manuais pós-clone (ex: deletar as fases default `Inbox`/`Doing`/`Done` que o Pipefy cria automaticamente).
 
 Nada é executado no Pipefy antes da aprovação explícita.
 

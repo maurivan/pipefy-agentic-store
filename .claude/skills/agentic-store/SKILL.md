@@ -112,10 +112,10 @@ Numa **única mensagem**, liste todas as variáveis numeradas com seus `label`, 
 Mostre exatamente 5 linhas:
 
 1. `Vou clonar "<nome>" (<fases_count> fases, <campos_count> campos)`
-2. Total estimado de tool calls (some labels + tables + condições + automações não-email + webhooks se as seções existirem)
-3. Ordem: pipe → labels → database_tables → fases → campos → field_conditions → automações (não-email) → AI agents → pipe_relation → webhooks (se aplicáveis)
+2. Total estimado de tool calls (some labels + tables + condições + automações + webhooks se as seções existirem)
+3. Ordem: pipe → labels → database_tables → fases → campos → field_conditions → automações → AI agents → pipe_relation → webhooks (se aplicáveis)
 4. Variáveis aplicadas (resumo curto)
-5. Avisos / passos que serão pulados — **sempre incluir aqui**: "email templates + automações tipo email serão pulados (API GraphQL não expõe `createEmailTemplate` — manual pós-clone)" se o template tem `email_templates:` ou automações com `entao.tipo: email`.
+5. Avisos / passos que serão pulados (se houver)
 
 **Espere `pode executar`** (ou sim/ok/vai). Não execute nada antes da aprovação. Se pedir mudanças, ajuste e mostre de novo.
 
@@ -137,44 +137,39 @@ Mostre exatamente 5 linhas:
 6. **Para cada condição em `condicoes_campo:`** (pule se a seção não existir):
    - Resolva `fase`, `campo_alvo`, `quando.campo` para IDs reais (usar `field_internal_id`, não slug).
    - `create_field_condition` aceita `operation`: `equals`, `not_equals` (testado e funciona); outros operadores via introspecção da `createFieldCondition` mutation se necessário.
-7. **`email_templates:` — SEMPRE PULA.** A API GraphQL pública do Pipefy **não expõe** `createEmailTemplate`. Email templates são criáveis apenas via UI. Registre cada template do YAML como TODO no relatório final.
-8. **Para cada automação em `automacoes:`** (pule se a seção não existir):
+7. **Para cada automação em `automacoes:`** (pule se a seção não existir):
    - Uma vez por pipe, chame `get_automation_events(pipe_id)` e `get_automation_actions(pipe_id)` pra validar `event_ids`/`action_types` suportados; cache os resultados.
    - Resolva referências antes de criar: `quando.fase` → `phase_id` real; `entao.label` → `label_id` real; `{{ card.<campo> }}` permanece literal.
-   - **Se `entao.tipo == email`, PULA** (depende de email_template que não pôde ser criado). Registre como TODO.
-   - Outros tipos (`move_card`, `update_field`, `add_label`, etc) → use `create_automation` com o `action_type` retornado por `get_automation_actions`.
-9. **Para cada AI Agent:**
+   - Use `create_automation` com o `action_type` retornado por `get_automation_actions`.
+8. **Para cada AI Agent:**
    - `get_pipe(pipe_id)` → pegue `pipe.uuid` como `repo_uuid`.
-   - `get_automation_events(pipe_id)` / `get_automation_actions(pipe_id)` — reaproveite os caches do passo 8 se já feitos.
+   - `get_automation_events(pipe_id)` / `get_automation_actions(pipe_id)` — reaproveite os caches do passo 7 se já feitos.
    - `create_ai_agent(name, instruction, repo_uuid, behaviors)` — operação **2-fase** (cria vazio + update com behaviors). Se o update falhar, o erro retorna `agent_uuid` no payload — use-o com `update_ai_agent` em vez de recriar (evita duplicata).
    - **`eventParams` usa nomes mistos**: `to_phase_id` é snake_case; `triggerFieldIds`, `fromPhaseId`, `inPhaseId`, `kindOfSla`, `triggerAutomationId` são camelCase. Não normalize cegamente.
    - **`triggerFieldIds` espera `field_internal_id`** (numérico), não slug.
-10. **pipe_relation:** se a variável `pipe_suporte_id` (ou equivalente) estiver vazia, PULE.
-11. **Para cada webhook em `webhooks:`** (pule se a seção não existir):
+9. **pipe_relation:** se a variável `pipe_suporte_id` (ou equivalente) estiver vazia, PULE.
+10. **Para cada webhook em `webhooks:`** (pule se a seção não existir):
     - Substitua `{{ variavel }}` em `url`, `headers.*` e qualquer payload extra.
     - Se `url` ficar vazia ou sem scheme (`http://` ou `https://`) após substituição, **PULE esse webhook** e registre aviso.
     - Resolve `filtro.fase_destino` → `phase_id` real (se a seção `filtro` existir).
     - `create_webhook(pipe_id, name, url, actions, email, headers)` — `actions` é a lista de eventos (`card.create`, `card.move`, etc); inspecione com `introspect_mutation('createWebhook')` na primeira chamada se o shape for incerto.
-12. **Mantenha mapa de IDs lógicos → IDs reais** (labels, tables, table_fields, fases, campos, automações, webhooks) e referencie nas chamadas seguintes.
-13. **Após cada tool call bem-sucedida**, uma linha curta de status.
-14. **Sequencial, sem paralelismo** — todas as etapas têm dependências (tables antes de fields `connector`; labels antes de automações com `add_label`; field_conditions depois de fields).
-15. **Falhou? Pare e reporte** com o erro completo. Não tente consertar — exceto pelo caso explícito do passo 9 (AI Agent partial-create recovery via `update_ai_agent`).
+11. **Mantenha mapa de IDs lógicos → IDs reais** (labels, tables, table_fields, fases, campos, automações, webhooks) e referencie nas chamadas seguintes.
+12. **Após cada tool call bem-sucedida**, uma linha curta de status.
+13. **Sequencial, sem paralelismo** — todas as etapas têm dependências (tables antes de fields `connector`; labels antes de automações com `add_label`; field_conditions depois de fields).
+14. **Falhou? Pare e reporte** com o erro completo. Não tente consertar — exceto pelo caso explícito do passo 8 (AI Agent partial-create recovery via `update_ai_agent`).
 
 ### 7. Relatório final
 
 - `pipe_id`
 - URL: `https://app.pipefy.com/pipes/<pipe_id>`
-- Contagem: labels, tables (+ colunas), fases, campos, condições de campo, automações (não-email), AI agents, webhooks criados
+- Contagem: labels, tables (+ colunas), fases, campos, condições de campo, automações, AI agents, webhooks criados
 - **TODOs manuais pós-clone (sempre listar):**
   - Deletar fases default do Pipefy (Inbox, Doing, Done)
-  - Criar email templates via UI (listar quantos do YAML ficaram pendentes)
-  - Criar automações de tipo email após (1) acima
   - Webhook(s) pulados por URL inválida (se houver)
   - Popular database tables vazias (se houver)
 
 ## Limitações conhecidas da API Pipefy (sempre considerar)
 
-- **`createEmailTemplate`**: não existe. Email templates são UI-only.
 - **`aiAgentsEnabled` em `RepoPreferenceInput`**: não existe. Habilitação é implícita.
 - **`yes_no` em `create_phase_field`**: não é tipo válido. Erro é "Phase not found" (enganoso).
 - **`create_ai_agent` é 2-fase**: create + update. Recupere parcial via `update_ai_agent(agent_uuid)`.
