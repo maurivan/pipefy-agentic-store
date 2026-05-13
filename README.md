@@ -8,11 +8,14 @@ Cada template descreve um pipe completo — fases, campos, AI Agents e relaçõe
 
 ```
 .
-├── templates/                       # Catálogo de templates clonáveis (.md)
+├── README.md                            # Este arquivo
+├── AGENTS.md                            # Guia para agentes de IA que editam o repo
+├── INSTALL-MCP.md                       # Instruções de instalação do MCP do Pipefy
+├── templates/                           # Catálogo de templates clonáveis (.md)
 │   └── onboarding-clientes-b2b.md
 └── .claude/skills/
-    ├── install-pipefy-mcp/          # Instala/configura o MCP do Pipefy
-    └── agentic-store/               # Lista e clona templates desta loja
+    ├── install-pipefy-mcp/              # Skill local para instalar o MCP (opcional)
+    └── agentic-store/                   # Skill principal — lista e clona templates
 ```
 
 ## Como usar
@@ -21,38 +24,30 @@ Cada template descreve um pipe completo — fases, campos, AI Agents e relaçõe
 
 - [Claude Code](https://claude.com/claude-code) instalado (`claude --version`)
 - `git`, `uv` (`brew install uv`), `python3` 3.11+
-- `gh` CLI logado na conta que tem acesso a este repo (`gh auth login`)
+- `gh` CLI logado (`gh auth login`)
 - Uma **Service Account do Pipefy** com Client ID e Client Secret — gere em **Admin Panel → Service Accounts**
 
-### 2. Instalar o MCP do Pipefy
+### 2. Rodar `/agentic-store`
 
-Dentro de qualquer sessão do Claude Code que tenha as skills deste repo carregadas:
-
-```
-/install-pipefy-mcp
-```
-
-A skill clona o servidor MCP, instala dependências com `uv`, pede o Client ID e Client Secret e registra o servidor no Claude Code (escopo `user` por padrão). Após a instalação, **reinicie o Claude Code** para as tools `mcp__pipefy__*` ficarem disponíveis.
-
-> **Importante:** adicione a Service Account como **membro de cada pipe** que você quer manipular via agente. Sem isso, o OAuth autentica mas não enxerga nada.
-
-### 3. Clonar um template
+Numa sessão do Claude Code com as skills deste repo carregadas:
 
 ```
 /agentic-store
 ```
 
-O fluxo é:
+Ponto. A skill cuida do resto:
 
-1. Confere que o MCP está conectado (se não estiver, roda `/install-pipefy-mcp`).
-2. Lista os templates desta loja direto do GitHub (você sempre vê a versão mais recente do `main`).
-3. Pergunta qual você quer clonar.
-4. Detecta os placeholders `{{ variavel }}` do template e pede os valores numa única mensagem.
-5. Mostra um plano em 5 linhas e **espera** sua aprovação (`pode executar`).
-6. Cria pipe → fases → campos → AI Agents → pipe_relations, na ordem certa.
-7. Devolve `pipe_id`, URL e contagem do que foi criado.
+1. **Verifica se o MCP do Pipefy está instalado.** Se não estiver, baixa [`INSTALL-MCP.md`](./INSTALL-MCP.md) deste repo e segue as instruções (clona o servidor MCP, instala dependências com `uv`, pede Client ID/Secret, registra no Claude). Você reinicia o Claude Code e roda `/agentic-store` de novo.
+2. **Lista os templates** desta loja direto do `main` no GitHub — você sempre vê a versão mais recente.
+3. **Pergunta qual clonar** via menu interativo.
+4. **Detecta os placeholders `{{ variavel }}`** do template e pede os valores numa única mensagem.
+5. **Mostra um plano em 5 linhas** e **espera sua aprovação** (`pode executar`).
+6. **Cria** pipe → fases → campos → AI Agents → pipe_relations na ordem certa.
+7. **Devolve** `pipe_id`, URL do pipe e contagem do que foi criado.
 
 Nada é executado no Pipefy antes da aprovação explícita.
+
+> **Importante:** depois de instalar o MCP, **adicione a Service Account como membro de cada pipe** que você quer manipular via agente. Sem isso, o OAuth autentica mas não enxerga os pipes.
 
 ## Formato dos templates
 
@@ -76,10 +71,10 @@ requer_ai_agents: true
 
 # Onboarding de Clientes B2B
 
-## 📖 Sobre este template
+## Sobre este template
 ...
 
-## ⚙️ Estrutura
+## Estrutura
 - fases: [...]
 - campos: [...]
 - ai_agents: [...]
@@ -92,30 +87,35 @@ O corpo do `.md` descreve a estrutura do pipe (fases, campos, AI Agents, relaç�
 
 | Campo | Obrigatório | Descrição |
 |---|---|---|
-| `id` | sim | Slug único do template (kebab-case) |
-| `nome` | sim | Nome amigável exibido na escolha |
+| `id` | sim | Slug único do template (kebab-case, igual ao nome do arquivo) |
+| `nome` | sim | Nome amigável exibido no menu |
 | `descricao_curta` | sim | Uma linha sobre o que o template faz |
 | `categoria` | sim | Categoria (`customer-success`, `vendas`, `it`, etc.) |
-| `versao` | sim | SemVer |
+| `versao` | sim | SemVer — bump em toda mudança |
 | `tags` | sim | Lista de tags para busca |
 | `icone` | recomendado | Emoji exibido junto ao nome |
 | `fases_count` | sim | Quantidade de fases |
 | `campos_count` | sim | Quantidade total de campos |
 | `requer_ai_agents` | sim | `true` se o template inclui AI Agents |
-| `schema_version` | sim | Versão do schema deste arquivo |
+| `schema_version` | sim | Versão do schema deste arquivo (atual: `1`) |
 
 ## Contribuindo um novo template
 
-1. Crie um novo arquivo em `templates/<slug>.md` seguindo o formato acima.
-2. Use placeholders `{{ variavel }}` para valores que o usuário precisará preencher.
-3. Teste rodando `/agentic-store` numa sessão local — o skill puxa do `main` do GitHub, então faça PR e merge antes de testar a versão publicada (ou aponte o skill temporariamente para sua branch durante desenvolvimento).
-4. Abra um PR.
+1. Crie um arquivo em `templates/<slug>.md` seguindo o formato acima.
+2. Use placeholders `{{ variavel }}` para valores que o usuário deve preencher.
+3. Bump a `versao` (SemVer): patch para correções, minor para fases/campos novos, major se quebra clonagens existentes.
+4. Abra um PR. A skill `/agentic-store` puxa do `main`, então o template só fica "publicado" depois do merge — para testar antes, ajuste a URL da skill temporariamente para a sua branch.
 
-## Atualização e remoção do MCP
+Leia também o [`AGENTS.md`](./AGENTS.md) para regras detalhadas (não introduzir dependências, não criar planos.md, não auto-commitar, etc.).
+
+## Manutenção do MCP
 
 ```bash
 # Atualizar o servidor MCP
 cd ~/.pipefy-mcp-server && git pull && uv sync
+
+# Ver config atual
+claude mcp get pipefy
 
 # Remover o MCP
 claude mcp remove pipefy
