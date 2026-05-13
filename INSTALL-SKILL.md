@@ -11,6 +11,32 @@ Um agente que estiver seguindo este documento deve executá-lo **em ordem**, par
 - **SKILL.md remoto (raw URL):** `https://raw.githubusercontent.com/maurivan/pipefy-agentic-store/main/.claude/skills/agentic-store/SKILL.md`
 - **Caminho global (escopo de usuário):** `~/.claude/skills/agentic-store/SKILL.md`
 - **Caminho local (escopo de projeto):** `./.claude/skills/agentic-store/SKILL.md` (relativo ao cwd)
+- **INSTALL-MCP.md (raw URL):** `https://raw.githubusercontent.com/maurivan/pipefy-agentic-store/main/INSTALL-MCP.md`
+
+## Passo 0 — Verificar MCP do Pipefy
+
+A skill `agentic-store` depende do MCP `pipefy`. Antes de instalar a skill, confirme que o MCP está registrado e conectado:
+
+```bash
+claude mcp get pipefy 2>&1
+```
+
+- **Se a saída contiver `✓ Connected`**, siga para o passo 1.
+- **Se o comando falhar ou não contiver `✓ Connected`**, avise o usuário em uma frase:
+
+  > A skill `agentic-store` precisa do MCP do Pipefy. Vou seguir as instruções de `INSTALL-MCP.md` deste repo antes de instalar a skill.
+
+  Em seguida, **baixe e siga o documento remoto `INSTALL-MCP.md`** em ordem (passos 1 ao 8):
+
+  ```bash
+  INSTALL_MCP_TMP=$(mktemp -t pipefy-install-XXXXXX.md)
+  curl -fsSL 'https://raw.githubusercontent.com/maurivan/pipefy-agentic-store/main/INSTALL-MCP.md' -o "$INSTALL_MCP_TMP"
+  echo "$INSTALL_MCP_TMP"
+  ```
+
+  Use `Read` no path retornado e execute as instruções do MCP. Quando terminar com sucesso, **continue** para o passo 1 desta doc (instalação da skill). Não peça pra reiniciar o Claude Code entre os dois — o restart no final do passo 4 cobre os dois (MCP + skill).
+
+  Se a instalação do MCP falhar em qualquer passo, pare e reporte — não tente instalar a skill sem o MCP funcionando.
 
 ## Passo 1 — Perguntar escopo
 
