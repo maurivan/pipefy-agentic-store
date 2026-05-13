@@ -18,6 +18,51 @@ Cada template descreve um pipe completo — fases, campos, AI Agents e relaçõe
     └── agentic-store/                   # Skill principal — lista e clona templates
 ```
 
+## Install
+
+Instale a skill `agentic-store` no seu Claude Code para ter o comando `/agentic-store` disponível em qualquer projeto.
+
+### Opção 1 — Prompt direto para o Claude Code (recomendado)
+
+Cole isto numa sessão do Claude Code:
+
+> Instale a skill `agentic-store` do repositório `maurivan/pipefy-agentic-store` no escopo global do meu Claude Code. Baixe o arquivo de `https://raw.githubusercontent.com/maurivan/pipefy-agentic-store/main/.claude/skills/agentic-store/SKILL.md` e salve em `~/.claude/skills/agentic-store/SKILL.md`. Depois me peça pra reiniciar o Claude Code.
+
+O Claude vai criar o diretório, baixar o arquivo e te avisar pra reiniciar.
+
+### Opção 2 — Manual no terminal
+
+```bash
+mkdir -p ~/.claude/skills/agentic-store
+curl -fsSL \
+  'https://raw.githubusercontent.com/maurivan/pipefy-agentic-store/main/.claude/skills/agentic-store/SKILL.md' \
+  -o ~/.claude/skills/agentic-store/SKILL.md
+```
+
+### Opção 3 — Só para este projeto
+
+Clone o repo e use-o como projeto no Claude Code — skills em `.claude/skills/` são carregadas automaticamente:
+
+```bash
+git clone https://github.com/maurivan/pipefy-agentic-store.git
+cd pipefy-agentic-store
+claude
+```
+
+### Verificar e ativar
+
+Após qualquer das opções acima, **reinicie o Claude Code** e confirme que a skill apareceu:
+
+```
+/agentic-store
+```
+
+URLs úteis:
+
+- Source da skill: <https://github.com/maurivan/pipefy-agentic-store/blob/main/.claude/skills/agentic-store/SKILL.md>
+- Raw (usada pelo curl): <https://raw.githubusercontent.com/maurivan/pipefy-agentic-store/main/.claude/skills/agentic-store/SKILL.md>
+- Instruções de instalação do MCP do Pipefy (puxadas automaticamente pela skill): <https://github.com/maurivan/pipefy-agentic-store/blob/main/INSTALL-MCP.md>
+
 ## Como usar
 
 ### 1. Pré-requisitos
