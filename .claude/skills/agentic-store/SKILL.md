@@ -122,7 +122,7 @@ Mostre exatamente 5 linhas:
 ### 6. Executar clonagem
 
 1. **Criar o pipe.** Não tente setar `aiAgentsEnabled` via `update_pipe.preferences` — esse campo **não existe** em `RepoPreferenceInput`. AI Agents são habilitados implicitamente quando você cria o primeiro agent. Guarde `pipe_id`.
-   - Atenção: o Pipefy cria 3 fases default (`Inbox`, `Doing`, `Done`) na criação do pipe. **Inclua no relatório final como TODO de limpeza** (user deleta manualmente).
+   - O Pipefy cria 3 fases default (`Inbox`/`Doing`/`Done` ou versão localizada). **Não delete agora** — Pipefy exige ao menos 1 fase no pipe; deletamos depois de criar as fases custom (passo 4b).
 2. **Para cada label em `labels:`** (pule se a seção não existir):
    - `create_label(pipe_id, name, color)` — `color` é hex `#RRGGBB`.
    - Guarde `label_id` por id lógico (ex: `urgente` → `987654`).
@@ -131,8 +131,13 @@ Mostre exatamente 5 linhas:
    - Para cada `coluna`: `create_table_field(table_id, label, field_type, options, required, unique)`.
    - Crie **todas as colunas** antes de avançar.
    - Mapa: `table_id` por id lógico; `table_field_id` por `(table_id, coluna_logical_id)` — usado quando campos `connector` do pipe apontam pra ela.
-4. **Criar fases** na ordem definida pelo campo `ordem`. Guarde cada `phase_id`.
-5. **Para cada fase, criar TODOS os campos antes de avançar pra próxima.** Guarde `field_id` (e `field_internal_id`) por id lógico do campo. Campos `connector` resolvem `conector_tabela` → `table_id` real do passo 3.
+4. **Criar fases** na ordem definida pelo campo `ordem`. Guarde cada `phase_id` (`custom_phase_ids` = set dos IDs criados aqui).
+4b. **Deletar fases default do Pipefy.** Imediatamente após criar todas as fases custom:
+   - `get_pipe(pipe_id)` → liste todas as fases.
+   - Para cada fase cujo `id` **NÃO está em `custom_phase_ids`**: `delete_phase(phase_id=X, pipe_id=Y, confirm=True)`.
+   - Não filtre por nome (Pipefy pode localizar `Inbox`/`Doing`/`Done` para PT-BR — a comparação de IDs é à prova de locale).
+   - Se algum delete falhar (cards já presentes, restrição de plano, etc.), **continue** e registre como aviso no relatório final.
+5. **Para cada fase custom, criar TODOS os campos antes de avançar pra próxima.** Guarde `field_id` (e `field_internal_id`) por id lógico do campo. Campos `connector` resolvem `conector_tabela` → `table_id` real do passo 3.
    - **`yes_no` não é tipo válido** em `create_phase_field` — use `radio_horizontal` com `options: ["Sim", "Não"]`. O erro retornado é enganoso ("Phase not found"); reconheça e troque.
 6. **Para cada condição em `condicoes_campo:`** (pule se a seção não existir):
    - Resolva `fase`, `campo_alvo`, `quando.campo` para IDs reais (usar `field_internal_id`, não slug).
@@ -163,8 +168,8 @@ Mostre exatamente 5 linhas:
 - `pipe_id`
 - URL: `https://app.pipefy.com/pipes/<pipe_id>`
 - Contagem: labels, tables (+ colunas), fases, campos, condições de campo, automações, AI agents, webhooks criados
+- Fases default deletadas (3 esperadas; se < 3, listar quais sobraram com motivo)
 - **TODOs manuais pós-clone (sempre listar):**
-  - Deletar fases default do Pipefy (Inbox, Doing, Done)
   - Webhook(s) pulados por URL inválida (se houver)
   - Popular database tables vazias (se houver)
 
@@ -175,7 +180,7 @@ Mostre exatamente 5 linhas:
 - **`create_ai_agent` é 2-fase**: create + update. Recupere parcial via `update_ai_agent(agent_uuid)`.
 - **`AutomationEventParamsInput` é case-misto**: `to_phase_id` (snake) + `triggerFieldIds` (camel) na mesma API.
 - **`triggerFieldIds` quer `internal_id`**, não slug.
-- **Pipefy cria 3 fases default** (`Inbox`/`Doing`/`Done`) em todo pipe novo — sempre orientar limpeza manual.
+- **Pipefy cria 3 fases default** (`Inbox`/`Doing`/`Done`) em todo pipe novo — a skill deleta automaticamente no passo 4b após criar as fases custom (`delete_phase` exige `confirm=True`).
 
 ## Regras
 
