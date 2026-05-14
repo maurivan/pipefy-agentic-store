@@ -3,7 +3,17 @@ import { useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Layout } from "../components/Layout";
 import { MarkdownLite } from "../components/MarkdownLite";
-import { countCamposInFases, type AutomacaoResumo, type FaseResumo } from "../lib/templateParser";
+import {
+  countCamposInFases,
+  type AutomacaoResumo,
+  type FaseResumo,
+  type AiBehaviorResumo,
+  type LabelResumo,
+  type DatabaseTableResumo,
+  type CondicaoCampoResumo,
+  type WebhookResumo,
+  type AcaoResumo,
+} from "../lib/templateParser";
 import { getTemplateById } from "../lib/loadTemplates";
 
 const LABEL_CATEGORIA: Record<string, string> = {
@@ -116,6 +126,47 @@ function formatEntao(a: AutomacaoResumo): string {
   return bits.length ? bits.join(" · ") : JSON.stringify(e);
 }
 
+function formatEventoParams(p: Record<string, unknown> | undefined): string {
+  if (!p || typeof p !== "object") return "";
+  const parts: string[] = [];
+  for (const [k, v] of Object.entries(p)) {
+    if (Array.isArray(v)) {
+      parts.push(`${k}: [${v.join(", ")}]`);
+    } else if (v != null) {
+      parts.push(`${k}: ${String(v)}`);
+    }
+  }
+  return parts.join(" · ");
+}
+
+function formatAcao(a: AcaoResumo): string {
+  if (!a.tipo) return JSON.stringify(a);
+  const bits: string[] = [a.tipo];
+  if (a.fase_destino) bits.push(`→ ${a.fase_destino}`);
+  if (a.label) bits.push(`label: ${a.label}`);
+  if (a.email_template) bits.push(`template: ${a.email_template}`);
+  if (a.tabela_destino) bits.push(`table: ${a.tabela_destino}`);
+  if (Array.isArray(a.campos) && a.campos.length > 0) {
+    const fields = a.campos
+      .map((c) => (c.modo ? `${c.id} (${c.modo})` : c.id ?? ""))
+      .filter(Boolean)
+      .join(", ");
+    if (fields) bits.push(`campos: ${fields}`);
+  }
+  return bits.join(" · ");
+}
+
+function formatCondicao(c: CondicaoCampoResumo): string {
+  const acao = c.acao ?? "alterar";
+  const alvo = c.campo_alvo ?? "?";
+  const q = c.quando ?? {};
+  const op = q.operador ?? "=";
+  const cmp = q.campo ?? "?";
+  const val = q.valor != null ? JSON.stringify(q.valor) : "?";
+  const fase = c.fase ? ` (em ${c.fase})` : "";
+  return `${acao} ${alvo} quando ${cmp} ${op} ${val}${fase}`;
+}
+
 export function TemplateDetailPage() {
   const { id: idParam } = useParams();
   const id = idParam ? decodeURIComponent(idParam) : "";
@@ -182,10 +233,14 @@ export function TemplateDetailPage() {
           <a href="#sobre">Sobre</a>
           <a href="#categoria">Categoria</a>
           <a href="#fases">Fases e campos</a>
+          {template.labels.length > 0 ? <a href="#labels">Labels</a> : null}
+          {template.databaseTables.length > 0 ? <a href="#tables">Database tables</a> : null}
+          {template.condicoesCampo.length > 0 ? <a href="#condicoes">Condições de campo</a> : null}
           {template.automacoes.length > 0 ? <a href="#automacoes">Automações</a> : null}
           {template.aiAgents.length > 0 ? <a href="#ai-agents">AI Agents</a> : null}
           {template.pipeRelations.length > 0 ? <a href="#relacoes">Pipe relations</a> : null}
           {template.emailTemplates.length > 0 ? <a href="#emails">Email templates</a> : null}
+          {template.webhooks.length > 0 ? <a href="#webhooks">Webhooks</a> : null}
           {template.variaveis.length > 0 ? <a href="#variaveis">Variáveis de criação</a> : null}
         </nav>
 
@@ -216,6 +271,88 @@ export function TemplateDetailPage() {
             </div>
           )}
         </Section>
+
+        {template.labels.length > 0 ? (
+          <Section title="Labels" id="labels">
+            <ul className="label-list">
+              {template.labels.map((l: LabelResumo, i) => (
+                <li key={l.id ?? i} className="label-item">
+                  {l.cor ? (
+                    <span
+                      className="label-swatch"
+                      style={{ background: l.cor }}
+                      aria-hidden
+                    />
+                  ) : null}
+                  <span className="label-nome">{l.nome ?? l.id ?? "Label"}</span>
+                  {l.id ? (
+                    <code className="label-id">{l.id}</code>
+                  ) : null}
+                  {l.cor ? <span className="muted small">{l.cor}</span> : null}
+                </li>
+              ))}
+            </ul>
+          </Section>
+        ) : null}
+
+        {template.databaseTables.length > 0 ? (
+          <Section title="Database tables" id="tables">
+            <ul className="table-list">
+              {template.databaseTables.map((t: DatabaseTableResumo, i) => {
+                const colunas = t.colunas ?? [];
+                return (
+                  <li key={t.id ?? i} className="table-card">
+                    <h3 className="table-nome">{t.nome ?? t.id ?? "Table"}</h3>
+                    {t.id ? (
+                      <p className="muted small">
+                        ID: <code>{t.id}</code>
+                      </p>
+                    ) : null}
+                    {t.descricao ? <p className="table-desc">{t.descricao}</p> : null}
+                    {colunas.length > 0 ? (
+                      <>
+                        <h4 className="table-cols-title">Colunas ({colunas.length})</h4>
+                        <ul className="campo-list">
+                          {colunas.map((c, j) => (
+                            <li key={c.id ?? j}>
+                              <span className="campo-label">{c.label ?? c.id ?? "Coluna"}</span>
+                              {c.tipo ? (
+                                <span className="campo-tipo">
+                                  <code>{c.tipo}</code>
+                                </span>
+                              ) : null}
+                              {c.obrigatorio ? (
+                                <span className="pill pill-req">obrigatório</span>
+                              ) : null}
+                              {c.unico ? <span className="pill pill-muted">único</span> : null}
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
+          </Section>
+        ) : null}
+
+        {template.condicoesCampo.length > 0 ? (
+          <Section title="Condições de campo" id="condicoes">
+            <p className="muted small">
+              Regras de visibilidade/obrigatoriedade que escondem ou mostram campos com base no
+              valor de outros campos da mesma fase.
+            </p>
+            <ul className="condicao-list">
+              {template.condicoesCampo.map((c: CondicaoCampoResumo, i) => (
+                <li key={c.id ?? i} className="condicao-item">
+                  <strong>{c.id ?? `Condição ${i + 1}`}</strong>
+                  <p>{formatCondicao(c)}</p>
+                </li>
+              ))}
+            </ul>
+          </Section>
+        ) : null}
 
         {template.automacoes.length > 0 ? (
           <Section title="Automações" id="automacoes">
@@ -253,27 +390,47 @@ export function TemplateDetailPage() {
                   ) : null}
                   {agent.behaviors && agent.behaviors.length > 0 ? (
                     <>
-                      <h4 className="behaviors-title">Comportamentos</h4>
+                      <h4 className="behaviors-title">
+                        Comportamentos ({agent.behaviors.length})
+                      </h4>
                       <ul className="behavior-list">
-                        {agent.behaviors.map((b, j) => (
-                          <li key={j}>
-                            <strong>{b.nome ?? "Comportamento"}</strong>
-                            {b.trigger ? (
-                              <>
-                                {" "}
-                                <span className="muted">
-                                  · trigger: <code>{b.trigger}</code>
-                                </span>
-                              </>
-                            ) : null}
-                            {b.prompt ? (
-                              <details className="behavior-prompt">
-                                <summary>Prompt</summary>
-                                <pre className="instruction-pre">{String(b.prompt).trim()}</pre>
-                              </details>
-                            ) : null}
-                          </li>
-                        ))}
+                        {agent.behaviors.map((b: AiBehaviorResumo, j) => {
+                          const eventoStr = formatEventoParams(b.evento_params);
+                          const acoes = b.acoes ?? [];
+                          return (
+                            <li key={j}>
+                              <strong>{b.nome ?? "Comportamento"}</strong>
+                              {b.trigger ? (
+                                <>
+                                  {" "}
+                                  <span className="muted">
+                                    · trigger: <code>{b.trigger}</code>
+                                  </span>
+                                </>
+                              ) : null}
+                              {eventoStr ? (
+                                <p className="muted small behavior-evento">
+                                  Quando: <code>{eventoStr}</code>
+                                </p>
+                              ) : null}
+                              {acoes.length > 0 ? (
+                                <ul className="acoes-list">
+                                  {acoes.map((a: AcaoResumo, k) => (
+                                    <li key={k}>
+                                      <code>{formatAcao(a)}</code>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : null}
+                              {b.prompt ? (
+                                <details className="behavior-prompt">
+                                  <summary>Prompt</summary>
+                                  <pre className="instruction-pre">{String(b.prompt).trim()}</pre>
+                                </details>
+                              ) : null}
+                            </li>
+                          );
+                        })}
                       </ul>
                     </>
                   ) : null}
@@ -324,6 +481,47 @@ export function TemplateDetailPage() {
                   ) : null}
                 </li>
               ))}
+            </ul>
+          </Section>
+        ) : null}
+
+        {template.webhooks.length > 0 ? (
+          <Section title="Webhooks" id="webhooks">
+            <ul className="webhook-list">
+              {template.webhooks.map((w: WebhookResumo, i) => {
+                const eventos = w.eventos ?? [];
+                const filtroEntries = w.filtro
+                  ? Object.entries(w.filtro).filter(([, v]) => v != null)
+                  : [];
+                return (
+                  <li key={w.id ?? i} className="webhook-item">
+                    <h3 className="webhook-nome">{w.nome ?? w.id ?? "Webhook"}</h3>
+                    {w.url ? (
+                      <p>
+                        URL: <code className="webhook-url">{w.url}</code>
+                      </p>
+                    ) : null}
+                    {eventos.length > 0 ? (
+                      <p>
+                        Eventos:{" "}
+                        {eventos.map((ev, j) => (
+                          <span key={j} className="pill pill-muted">
+                            {ev}
+                          </span>
+                        ))}
+                      </p>
+                    ) : null}
+                    {filtroEntries.length > 0 ? (
+                      <p className="muted small">
+                        Filtro:{" "}
+                        {filtroEntries
+                          .map(([k, v]) => `${k}=${String(v)}`)
+                          .join(", ")}
+                      </p>
+                    ) : null}
+                  </li>
+                );
+              })}
             </ul>
           </Section>
         ) : null}

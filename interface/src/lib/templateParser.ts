@@ -41,10 +41,27 @@ export type AutomacaoResumo = {
   entao?: Record<string, unknown>;
 };
 
+export type AcaoCampo = {
+  id?: string;
+  modo?: string;
+  valor?: string | number | boolean;
+};
+
+export type AcaoResumo = {
+  tipo?: string;
+  campos?: AcaoCampo[];
+  fase_destino?: string;
+  label?: string;
+  email_template?: string;
+  tabela_destino?: string;
+};
+
 export type AiBehaviorResumo = {
   nome?: string;
   trigger?: string;
+  evento_params?: Record<string, unknown>;
   prompt?: string;
+  acoes?: AcaoResumo[];
 };
 
 export type AiAgentResumo = {
@@ -76,15 +93,63 @@ export type VariavelResumo = {
   obrigatorio?: boolean;
 };
 
+export type LabelResumo = {
+  id?: string;
+  nome?: string;
+  cor?: string;
+};
+
+export type ColunaTableResumo = {
+  id?: string;
+  label?: string;
+  tipo?: string;
+  obrigatorio?: boolean;
+  unico?: boolean;
+};
+
+export type DatabaseTableResumo = {
+  id?: string;
+  nome?: string;
+  descricao?: string;
+  colunas?: ColunaTableResumo[];
+};
+
+export type CondicaoQuando = {
+  campo?: string;
+  operador?: string;
+  valor?: string | number | boolean;
+};
+
+export type CondicaoCampoResumo = {
+  id?: string;
+  fase?: string;
+  campo_alvo?: string;
+  quando?: CondicaoQuando;
+  acao?: string;
+};
+
+export type WebhookResumo = {
+  id?: string;
+  nome?: string;
+  url?: string;
+  eventos?: string[];
+  filtro?: Record<string, unknown>;
+  headers?: Record<string, unknown>;
+};
+
 export type ParsedTemplate = {
   sourceFile: string;
   frontmatter: TemplateFrontmatter;
   sobreMarkdown: string;
   fases: FaseResumo[];
+  labels: LabelResumo[];
+  databaseTables: DatabaseTableResumo[];
+  condicoesCampo: CondicaoCampoResumo[];
   automacoes: AutomacaoResumo[];
   aiAgents: AiAgentResumo[];
   pipeRelations: PipeRelationResumo[];
   emailTemplates: EmailTemplateResumo[];
+  webhooks: WebhookResumo[];
   variaveis: VariavelResumo[];
 };
 
@@ -168,10 +233,14 @@ export function parseTemplateMarkdown(raw: string, sourcePath: string): ParsedTe
     frontmatter,
     sobreMarkdown: extractSobreMarkdown(body),
     fases,
+    labels: asArray<LabelResumo>(merged.labels),
+    databaseTables: asArray<DatabaseTableResumo>(merged.database_tables),
+    condicoesCampo: asArray<CondicaoCampoResumo>(merged.condicoes_campo),
     automacoes: asArray<AutomacaoResumo>(merged.automacoes),
     aiAgents: asArray<AiAgentResumo>(merged.ai_agents),
     pipeRelations: asArray<PipeRelationResumo>(merged.pipe_relations),
     emailTemplates: asArray<EmailTemplateResumo>(merged.email_templates),
+    webhooks: asArray<WebhookResumo>(merged.webhooks),
     variaveis: asArray<VariavelResumo>(merged.variaveis),
   };
 }
