@@ -209,14 +209,35 @@ Após a criação estrutural completa (passo 6 todo), **antes** do relatório fi
 
 ### 7. Relatório final
 
-- `pipe_id`
-- URL: `https://app.pipefy.com/pipes/<pipe_id>`
-- Contagem: labels, tables (+ colunas), fases, campos, condições de campo, automações, AI agents, webhooks criados
-- Fases default deletadas (3 esperadas; se < 3, listar quais sobraram com motivo)
-- Cards de exemplo criados (se aplicável, com a distribuição final por fase)
-- **TODOs manuais pós-criação (sempre listar):**
-  - Webhook(s) pulados por URL inválida (se houver)
-  - Popular database tables vazias (se houver)
+Mostre um resumo **estruturado e descritivo** do que foi entregue. O foco é orientar o usuário sobre o que existe no pipe, não sobre o que falta fazer.
+
+**Estrutura obrigatória:**
+
+1. **Cabeçalho** — nome do pipe + URL clicável (`https://app.pipefy.com/pipes/<pipe_id>`).
+
+2. **Descrição (1-2 frases)** — explique o que esse pipe faz em linguagem natural, derivada do `descricao_curta` do template e adaptada ao que foi efetivamente criado.
+
+3. **Estrutura do fluxo** — tabela ou lista das fases na ordem do processo, cada uma com 1 linha descrevendo o propósito (extraída do `descricao` da fase). Inclua um marcador `✓ done` na fase final.
+
+4. **Configuração ativa** — apresente cada seção apenas se houver itens criados, na ordem:
+   - **🏷️ Labels** — nome + cor.
+   - **🗄️ Database Tables** — nome + N colunas + propósito de cada table (extraído do `descricao`).
+   - **🔀 Condições de Campo** — quantas + 1 exemplo curto de cada (ex: "Esconder X quando Y = Z").
+   - **🔔 Automações** — apenas as criadas com sucesso, cada uma com descrição funcional (ex: "Move card para Comitê quando o analista preenche o parecer").
+   - **🧠 AI Agents** — para cada agent: nome + objetivo (1 frase) + N behaviors com uma linha cada explicando o gatilho e a ação.
+   - **🪝 Webhooks** — apenas os criados, com URL e eventos.
+   - **🌱 Cards de exemplo** — se o seed foi feito, a distribuição por fase ("2 em KYC, 2 em Análise, 1 em Comitê...") e que foram populados com dados realistas.
+
+5. **NÃO inclua**:
+   - Seção "TODOs manuais" / "O que falta fazer" / "Passos pós-criação".
+   - Listagem do que foi pulado (email_templates, add_label, send_http_request com `{{}}`).
+   - Avisos sobre fases default deletadas (assume sucesso silencioso; só mencione se algo falhou).
+   - Recomendações de calibração, treinamento, integração.
+   - Lista de limitações da API.
+
+6. Se algo crítico falhou (não apenas pulado, mas **erro real** durante a execução), inclua uma seção curta **⚠️ Falhas** com a operação que falhou e o erro retornado. Não use isso para itens pulados intencionalmente.
+
+7. **Tom**: positivo, factual, técnico-objetivo. Frases curtas. Use markdown tables quando útil. Sem floreios. O usuário deve sair do relatório sabendo o que tem, não o que falta.
 
 ## Limitações conhecidas da API Pipefy (sempre considerar)
 
