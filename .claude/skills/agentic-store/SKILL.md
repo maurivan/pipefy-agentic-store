@@ -121,8 +121,38 @@ Mostre exatamente 5 linhas:
 
 ### 6. Executar criação
 
-1. **Criar o pipe.** Não tente setar `aiAgentsEnabled` via `update_pipe.preferences` — esse campo **não existe** em `RepoPreferenceInput`. AI Agents são habilitados implicitamente quando você cria o primeiro agent. Guarde `pipe_id`.
+#### Paralelismo controlado
+
+Algumas etapas são independentes entre si e podem rodar em paralelo (múltiplas tool calls num mesmo turno). Outras têm dependências e DEVEM ser sequenciais. Sempre limite cada burst paralelo a **5 chamadas concorrentes** pra evitar rate limit (~100-200 req/min na maioria dos planos).
+
+**PARALELO permitido:**
+- **Labels entre si** (passo 2) — recursos independentes.
+- **Tables entre si** (passo 3) — recursos independentes, MAS as `colunas` DENTRO de cada table ficam **sequenciais** (`create_table_field` precisa do `table_id` E o Pipefy pode rejeitar concorrência no mesmo recurso pai).
+- **Webhooks entre si** (passo 10) — recursos independentes.
+- **Passos 2 + 3 simultaneamente** — labels e tables não se referenciam; pode dispará-los no mesmo turno.
+
+**SEQUENCIAL obrigatório:**
+- Passo 1 (create_pipe) → tudo depende do `pipe_id`.
+- Passo 4 (fases) → ordem matters; campos `connector` (passo 5) referenciam `table_id` do passo 3.
+- Passo 4b (delete_phase) → não paralelize; Pipefy pode falhar se múltiplos deletes na mesma chamada.
+- Passo 5 (campos por fase) → criar TODOS campos da fase A antes de avançar pra fase B (necessário pra resolver dependências de field_conditions a seguir).
+- Passo 6 (field_conditions) → dependem de field IDs do passo 5.
+- Passo 7 (automações) → dependem de phase IDs + label IDs + caches do `get_automation_*`.
+- Passo 8 (AI Agents) → operação 2-fase própria; cada agent é sequencial.
+- Passo 9 (pipe_relation) → 1 só.
+- Passo 10 (webhooks) → paralelo entre si MAS depois das fases (se houver `filtro.fase_destino`).
+
+**Como aplicar**: quando o passo permite paralelo, faça as N tool calls **no mesmo turno** (multi-tool-use). Se N > 5, quebre em batches de 5 — cada batch é um turno.
+
+---
+
+1. **Criar o pipe.** Não tente setar `aiAgentsEnabled` via `update_pipe.preferences` — esse campo **não existe** em `RepoPreferenceInput`. AI Agents são habilitados implicitamente quando você cria o primeiro agent.
    - O Pipefy cria 3 fases default (`Inbox`/`Doing`/`Done` ou versão localizada). **Não delete agora** — Pipefy exige ao menos 1 fase no pipe; deletamos depois de criar as fases custom (passo 4b).
+   - **Cache obrigatório a partir do payload de `create_pipe`** — `Pipe` GraphQL retorna `id`, `uuid` e `startFormPhaseId` no `CreatePipePayload`. Guarde os três:
+     - `pipe_id` — usado em quase todas as chamadas a seguir.
+     - `pipe_uuid` — usado como `repo_uuid` na criação de AI Agents (passo 8). **Evita um `get_pipe` redundante.**
+     - `startFormPhaseId` — usado no passo 4 (mapeia para a fase `ordem: 1`).
+   - Se o MCP `create_pipe` não expuser `uuid` no payload (raro), faça **um único** `get_pipe(pipe_id)` agora e cache os três campos — não chame `get_pipe` novamente nos passos 4b e 8.
 2. **Para cada label em `labels:`** (pule se a seção não existir):
    - `create_label(pipe_id, name, color)` — `color` é hex `#RRGGBB`.
    - Guarde `label_id` por id lógico (ex: `urgente` → `987654`).
@@ -156,11 +186,26 @@ Mostre exatamente 5 linhas:
      - `tipo: send_http_request` (sem template em URL) → `action_id: "send_http_request"` + `action_params: {"url": "...", "httpMethod": "GET|POST|PUT|DELETE", "headers": "<JSON string>", "body": "<JSON string>"}`
      - `tipo: update_card_field` → `action_id: "update_card_field"` + `action_params: {"fields_map_order": [...]}`
 8. **Para cada AI Agent:**
-   - `get_pipe(pipe_id)` → pegue `pipe.uuid` como `repo_uuid`.
+   - Use o `pipe_uuid` **já cacheado** no passo 1 como `repo_uuid`. **Não chame `get_pipe` aqui** — é redundante.
    - `get_automation_events(pipe_id)` / `get_automation_actions(pipe_id)` — reaproveite os caches do passo 7 se já feitos.
+   - **NOVO — Auto-introspect uma vez por sessão**: na primeira automação OU primeiro AI Agent (o que vier antes), chame `introspect_type("AutomationEventParamsInput")` e cache o resultado. Use as chaves retornadas pela API como fonte da verdade — a tabela abaixo é cache estático, não dogma.
+   - **Construa `eventParams` via lookup explícito, NUNCA por adivinhação**. Tabela canônica (sincronizada com `template-creator/reference/mcp-coverage.md`):
+
+     | `trigger` | YAML do template | API real (`eventParams.<chave>`) | Valor |
+     |---|---|---|---|
+     | `card_created` | `em_fase: X` | `inPhaseId` ⚠️ camelCase | phase_id |
+     | `card_moved` | `em_fase: X` / `para_fase: X` | `to_phase_id` snake | phase_id |
+     | `card_left_phase` | `da_fase: X` | `fromPhaseId` ⚠️ camelCase | phase_id |
+     | `field_updated` | `campos: [X]` ou `campo: X` | `triggerFieldIds` ⚠️ camelCase | **field_internal_id** (numérico) |
+     | `sla_based` | `tipo_sla: Expired\|Late\|Overdue` | `kindOfSla` ⚠️ camelCase | string |
+     | `card_inbox_received_email` | `em_fase: X` | `inPhaseId` ⚠️ camelCase | phase_id |
+     | `all_children_in_phase` | `em_fase: X` / `para_fase: X` | `to_phase_id` snake | phase_id |
+     | `http_response_received` | `automacao_disparadora: X` | `triggerAutomationId` ⚠️ camelCase | automation_id |
+     | `manually_triggered` | — | (sem params) | — |
+     | `scheduler` | — | (sem params) | — |
+
+   - **Regra:** se o trigger do behavior não está na tabela acima, NÃO invente o nome do campo — chame `introspect_type("AutomationEventParamsInput")` e use as chaves retornadas.
    - `create_ai_agent(name, instruction, repo_uuid, behaviors)` — operação **2-fase** (cria vazio + update com behaviors). Se o update falhar, o erro retorna `agent_uuid` no payload — use-o com `update_ai_agent` em vez de recriar (evita duplicata).
-   - **`eventParams` usa nomes mistos**: `to_phase_id` é snake_case; `triggerFieldIds`, `fromPhaseId`, `inPhaseId`, `kindOfSla`, `triggerAutomationId` são camelCase. Não normalize cegamente.
-   - **`triggerFieldIds` espera `field_internal_id`** (numérico), não slug.
 9. **pipe_relation:** se a variável `pipe_suporte_id` (ou equivalente) estiver vazia, PULE.
 10. **Para cada webhook em `webhooks:`** (pule se a seção não existir):
     - Substitua `{{ variavel }}` em `url`, `headers.*` e qualquer payload extra.
@@ -169,7 +214,7 @@ Mostre exatamente 5 linhas:
     - `create_webhook(pipe_id, name, url, actions, email, headers)` — `actions` é a lista de eventos (`card.create`, `card.move`, etc); inspecione com `introspect_mutation('createWebhook')` na primeira chamada se o shape for incerto.
 11. **Mantenha mapa de IDs lógicos → IDs reais** (labels, tables, table_fields, fases, campos, automações, webhooks) e referencie nas chamadas seguintes.
 12. **Após cada tool call bem-sucedida**, uma linha curta de status.
-13. **Sequencial, sem paralelismo** — todas as etapas têm dependências (tables antes de fields `connector`; labels antes de automações com `add_label`; field_conditions depois de fields).
+13. **Paralelismo controlado** — siga a tabela "PARALELO permitido / SEQUENCIAL obrigatório" no topo do passo 6. Etapas com dependências cruzadas (campos `connector` → tables; field_conditions → fields; automações → phases+labels) ficam sequenciais; recursos independentes (labels, tables entre si, webhooks) podem rodar em batches de até 5 concorrentes no mesmo turno.
 14. **Falhou? Pare e reporte** com o erro completo. Não tente consertar — exceto pelo caso explícito do passo 8 (AI Agent partial-create recovery via `update_ai_agent`).
 
 ### 6b. Seed opcional de cards de exemplo

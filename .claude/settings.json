@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // .tool_response.filePath' | { read -r f; case \"$f\" in */templates/*.md) [ -d interface ] && (cd interface && npm run build >/dev/null 2>&1) || true ;; esac; }",
+            "timeout": 60,
+            "statusMessage": "Sincronizando catálogo (interface/dist) com o template editado..."
+          }
+        ]
+      }
+    ]
+  }
+}
