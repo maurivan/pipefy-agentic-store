@@ -3,7 +3,7 @@ id: order-approval-credit-check
 nome: Aprovação de Pedido com Check de Crédito
 descricao_curta: Aprovação de pedidos B2B com lookup de score/limite, validação de crédito por IA e roteamento condicional para sub-pipe de análise.
 categoria: comercial
-versao: 1.0.0
+versao: 1.1.0
 schema_version: 1
 autor: pipefy-template-store
 tags: [comercial, o2c, aprovacao, credito, validacao, ia]
@@ -217,29 +217,29 @@ automacoes:
   - id: lookup-credito-cliente
     nome: "Lookup de crédito ao criar pedido"
     quando:
-      evento: card_criado_em_fase
+      evento: card_created_in_phase
       fase: pedido-recebido
     entao:
-      tipo: enviar_webhook
+      tipo: send_http_request
       webhook_id: crm-credit-lookup
 
   - id: auto-aprovacao-pequeno-valor
     nome: "Auto-aprovar pedidos OK abaixo do limite de auto-aprovação"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: validacao-status
     entao:
-      tipo: atualizar_campo
+      tipo: update_card_field
       campo: decisao
       valor: "Aprovado"
 
   - id: rotear-analise-credito
     nome: "Rotear excedidos para sub-pipe de Análise"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: validacao-status
     entao:
-      tipo: criar_card_conectado
+      tipo: create_connected_card
       relation_id: rel-analise-credito
       campos:
         motivo: "{{ card.motivo-validacao }}"
@@ -247,10 +247,10 @@ automacoes:
   - id: disparar-faturamento-erp
     nome: "Disparar faturamento no ERP ao aprovar"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: decisao
     entao:
-      tipo: enviar_webhook
+      tipo: send_http_request
       webhook_id: erp-faturamento
 ```
 

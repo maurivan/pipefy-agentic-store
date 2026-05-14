@@ -3,7 +3,7 @@ id: onboarding-clientes-b2b
 nome: Onboarding de Clientes B2B
 descricao_curta: Receba novos clientes desde contrato assinado até kickoff concluído, com IA classificando prioridade
 categoria: customer-success
-versao: 1.1.0
+versao: 1.2.0
 autor: pipefy-template-store
 tags: [onboarding, b2b, customer-success, vendas, ia]
 icone: 🤝
@@ -267,7 +267,7 @@ automacoes:
   - id: notificar_cs_novo_card
     nome: "Notificar CS ao entrar novo cliente"
     quando:
-      evento: card_movido_para_fase
+      evento: card_moved_to_phase
       fase: contrato-assinado
     entao:
       tipo: email
@@ -277,7 +277,7 @@ automacoes:
   - id: alerta_sla_implantacao
     nome: "Alerta de SLA em Implantação"
     quando:
-      evento: card_atrasado_em_fase
+      evento: card_late_in_phase
       fase: implantacao
     entao:
       tipo: email

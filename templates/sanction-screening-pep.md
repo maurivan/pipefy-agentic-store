@@ -3,7 +3,7 @@ id: sanction-screening-pep
 nome: "Sanction Screening / PEP Check"
 descricao_curta: "Triagem em listas OFAC/CSNU/PEP com classificação probabilística por IA em 4 níveis"
 categoria: juridico
-versao: 1.0.0
+versao: 1.1.0
 schema_version: 1
 autor: pipefy-template-store
 tags: [juridico, compliance, sanctions, pep, ofac, screening]
@@ -180,29 +180,29 @@ automacoes:
   - id: consultar-listas-ao-criar
     nome: "Disparar consulta às listas externas"
     quando:
-      evento: card_criado_em_fase
+      evento: card_created_in_phase
       fase: solicitacao-screening
     entao:
-      tipo: enviar_webhook
+      tipo: send_http_request
       webhook_id: consulta-ofac
 
   - id: revisao-obrigatoria
     nome: "Auto-flag para revisão quando score alto"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: score-similaridade
     entao:
-      tipo: atualizar_campo
+      tipo: update_card_field
       campo: match-definitivo
       valor: "MATCH_POSSIVEL"
 
   - id: escalation-match-definitivo
     nome: "Escalation P0 em match definitivo"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: match-definitivo
     entao:
-      tipo: enviar_webhook
+      tipo: send_http_request
       webhook_id: escalation-compliance-officer
 ```
 

@@ -3,7 +3,7 @@ id: performance-review-routing
 nome: Roteamento de Performance Review
 descricao_curta: Ciclo trimestral de avaliação de performance (auto-avaliação, gestor, calibração, devolutiva) com sumarização leve de feedback por IA.
 categoria: rh
-versao: 1.0.0
+versao: 1.1.0
 schema_version: 1
 autor: pipefy-template-store
 tags: [rh, performance, avaliacao, feedback, ia]
@@ -166,19 +166,19 @@ automacoes:
   - id: avancar-quando-auto-completa
     nome: "Avançar para Avaliação do Gestor quando auto-avaliação completa"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: score-auto
     entao:
-      tipo: mover_card
+      tipo: move_single_card
       fase_destino: avaliacao-gestor
 
   - id: flag-calibracao-diff-alto
     nome: "Sinalizar diff alto para calibração obrigatória"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: score-gestor
     entao:
-      tipo: atualizar_campo
+      tipo: update_card_field
       campo: justificativa-diff
       valor: "Diff entre auto e gestor superior a {{ diff_calibracao }} — calibração recomendada."
 ```

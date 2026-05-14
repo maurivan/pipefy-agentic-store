@@ -2,7 +2,7 @@
 id: invoice-3-way-match
 nome: Invoice 3-Way Match (PO + GRN + NF)
 categoria: financeiro
-versao: 1.0.0
+versao: 1.1.0
 schema_version: 1
 descricao_curta: Conferência 3-way de Notas Fiscais contra Pedido de Compra (PO) e Nota de Recebimento (GRN), com agente IA único validando valor, itens e quantidades.
 autor: pipefy-template-store
@@ -180,28 +180,28 @@ automacoes:
   - id: auto-move-resolucao
     nome: "Auto-move para Resolução quando houver divergência em qualquer match"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: match_grn
     entao:
-      tipo: mover_card
+      tipo: move_single_card
       fase_destino: resolucao-divergencias
 
   - id: auto-move-pagamento
     nome: "Auto-move para Aprovado quando todos os matches = OK"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: match_grn
     entao:
-      tipo: mover_card
+      tipo: move_single_card
       fase_destino: aprovado-pagamento
 
   - id: webhook-programar-pagamento
     nome: "Programar pagamento no ERP"
     quando:
-      evento: card_movido_para_fase
+      evento: card_moved_to_phase
       fase: aprovado-pagamento
     entao:
-      tipo: enviar_webhook
+      tipo: send_http_request
       webhook_id: webhook-erp-pagamento
 ```
 

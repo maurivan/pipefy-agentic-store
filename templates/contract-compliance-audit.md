@@ -3,7 +3,7 @@ id: contract-compliance-audit
 nome: "Contract Compliance Audit"
 descricao_curta: "Auditoria periódica de cumprimento contratual com agente IA que classifica evidências em 4 estados"
 categoria: juridico
-versao: 1.0.0
+versao: 1.1.0
 schema_version: 1
 autor: pipefy-template-store
 tags: [juridico, compliance, auditoria, contratos, evidencias]
@@ -190,19 +190,19 @@ automacoes:
   - id: flag-p0-score-baixo
     nome: "Flag P0 quando score cai abaixo do limite"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: compliance-score
     entao:
-      tipo: enviar_webhook
+      tipo: send_http_request
       webhook_id: alerta-p0-compliance
 
   - id: avancar-apos-coleta
     nome: "Mover para Análise quando evidências forem anexadas"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: evidencias
     entao:
-      tipo: mover_card
+      tipo: move_single_card
       fase_destino: analise-gap
 ```
 

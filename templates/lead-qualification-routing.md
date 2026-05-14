@@ -3,7 +3,7 @@ id: lead-qualification-routing
 nome: "Lead Qualification & Routing"
 descricao_curta: "Captura, enriquecimento e roteamento de leads com scoring numérico simples por IA"
 categoria: comercial
-versao: 1.0.0
+versao: 1.1.0
 schema_version: 1
 autor: pipefy-template-store
 tags: [comercial, vendas, leads, scoring, sdr, routing]
@@ -196,37 +196,37 @@ automacoes:
   - id: disparar-enriquecimento
     nome: "Enriquecer ao capturar lead"
     quando:
-      evento: card_criado_em_fase
+      evento: card_created_in_phase
       fase: lead-capturado
     entao:
-      tipo: enviar_webhook
+      tipo: send_http_request
       webhook_id: webhook-enriquecimento
 
   - id: auto-avancar-sql
     nome: "Avançar para Qualificação quando score for alto"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: score-lead
     entao:
-      tipo: mover_card
+      tipo: move_single_card
       fase_destino: qualificacao
 
   - id: gerar-calendly-sql
     nome: "Gerar link Calendly em SQL"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: status
     entao:
-      tipo: enviar_webhook
+      tipo: send_http_request
       webhook_id: webhook-calendly
 
   - id: criar-no-crm
     nome: "Criar lead no CRM ao agendar reunião"
     quando:
-      evento: card_movido_para_fase
+      evento: card_moved_to_phase
       fase: oportunidade-aberta
     entao:
-      tipo: enviar_webhook
+      tipo: send_http_request
       webhook_id: webhook-crm
 ```
 

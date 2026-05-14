@@ -3,7 +3,7 @@ id: expense-reimbursement
 nome: Reembolso de Despesas Corporativas
 descricao_curta: Reembolso completo (4 fases) com IA extraindo dados do comprovante, validação de política embutida, fast-track para valores baixos e SLA de aprovação.
 categoria: financeiro
-versao: 1.0.0
+versao: 1.1.0
 schema_version: 1
 autor: pipefy-template-store
 tags: [financeiro, reembolso, despesas, ocr, ia, ap, doc-extraction]
@@ -174,29 +174,29 @@ automacoes:
   - id: fast-track-baixo-valor
     nome: "Fast-track: aprovação automática para valores baixos"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: match-valor
     entao:
-      tipo: mover_card
+      tipo: move_single_card
       fase_destino: pagamento
 
   - id: alerta-sla-aprovacao
     nome: "Alerta interno: SLA de aprovação estourado"
     quando:
-      evento: prazo_estourado
+      evento: sla_based
       fase: aprovacao-gestor
     entao:
-      tipo: atualizar_campo
+      tipo: update_card_field
       campo: comentario-gestor
       valor: "SLA estourado — RH notificado"
 
   - id: rejeitar-card
     nome: "Mover para Pagamento quando aprovado pelo gestor"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: decisao
     entao:
-      tipo: mover_card
+      tipo: move_single_card
       fase_destino: pagamento
 ```
 

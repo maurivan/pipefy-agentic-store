@@ -3,7 +3,7 @@ id: customer-onboarding-kyc
 nome: Onboarding de Cliente com KYC (PF/PJ)
 descricao_curta: Onboarding completo de cliente com extração KYC adaptada para PF/PJ, validações automatizadas e integração com CRM/análise de crédito.
 categoria: customer-success
-versao: 1.0.0
+versao: 1.1.0
 schema_version: 1
 autor: pipefy-template-store
 tags: [customer-success, onboarding, kyc, doc-extraction, compliance, ia]
@@ -208,28 +208,28 @@ automacoes:
   - id: disparar-pep-sanctions
     nome: "Disparar PEP/sanctions ao entrar em Validação"
     quando:
-      evento: card_movido_para_fase
+      evento: card_moved_to_phase
       fase: validacao
     entao:
-      tipo: enviar_webhook
+      tipo: send_http_request
       webhook_id: pep-sanctions-check
 
   - id: criar-conta-crm-aprovado
     nome: "Criar conta no CRM ao aprovar"
     quando:
-      evento: card_movido_para_fase
+      evento: card_moved_to_phase
       fase: aprovado
     entao:
-      tipo: enviar_webhook
+      tipo: send_http_request
       webhook_id: crm-criar-conta
 
   - id: pular-credito-se-nao-aplicavel
     nome: "Mover direto para Aprovado quando crédito não aplicável"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: validacao-documentos
     entao:
-      tipo: mover_card
+      tipo: move_single_card
       fase_destino: aprovado
 ```
 

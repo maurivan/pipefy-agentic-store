@@ -3,7 +3,7 @@ id: customer-ticket-triage
 nome: Triagem de Tickets de Cliente
 descricao_curta: Triagem multidimensional de tickets (categoria, prioridade, time, idioma, resumo) com lookup de segmento e roteamento via inbox de email.
 categoria: customer-success
-versao: 1.0.0
+versao: 1.1.0
 schema_version: 1
 autor: pipefy-template-store
 tags: [customer-success, suporte, triagem, ticket, ia, inbox]
@@ -214,28 +214,28 @@ automacoes:
   - id: lookup-segmento-cliente
     nome: "Lookup do segmento do cliente ao criar"
     quando:
-      evento: card_criado_em_fase
+      evento: card_created_in_phase
       fase: ticket-criado
     entao:
-      tipo: enviar_webhook
+      tipo: send_http_request
       webhook_id: crm-segmento-lookup
 
   - id: mover-triagem-pos-criacao
     nome: "Mover para Triagem após enriquecimento"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: segmento-cliente
     entao:
-      tipo: mover_card
+      tipo: move_single_card
       fase_destino: triagem-ia
 
   - id: mover-atribuicao-pos-triagem
     nome: "Mover para Atribuição quando IA completa classificação"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: time-responsavel
     entao:
-      tipo: mover_card
+      tipo: move_single_card
       fase_destino: atribuicao
 ```
 

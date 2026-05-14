@@ -3,7 +3,7 @@ id: boleto-validation
 nome: Validação e Pagamento de Boletos
 descricao_curta: Esteira de recebimento, extração e validação de boletos bancários com IA extraindo linha digitável, validação HTTP de boleto e agendamento via core bancário.
 categoria: financeiro
-versao: 1.0.0
+versao: 1.1.0
 schema_version: 1
 autor: pipefy-template-store
 tags: [financeiro, boleto, ap, doc-extraction, ia, banco]
@@ -189,38 +189,38 @@ automacoes:
   - id: validar-boleto-http
     nome: "Disparar validação HTTP ao preencher linha digitável"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: linha-digitavel
     entao:
-      tipo: enviar_webhook
+      tipo: send_http_request
       webhook_id: validar-boleto-externo
 
   - id: auto-aprovacao-baixo-valor
     nome: "Auto-aprovar boletos baixos validados"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: conferencia-valor
     entao:
-      tipo: atualizar_campo
+      tipo: update_card_field
       campo: aprovado
       valor: Sim
 
   - id: agendar-pagamento-banco
     nome: "Agendar pagamento no banco quando aprovado"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: aprovado
     entao:
-      tipo: enviar_webhook
+      tipo: send_http_request
       webhook_id: agendar-pagamento-banco
 
   - id: mover-pagamento-agendado
     nome: "Mover card para Pagamento Agendado após aprovação"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: aprovado
     entao:
-      tipo: mover_card
+      tipo: move_single_card
       fase_destino: pagamento-agendado
 ```
 

@@ -3,7 +3,7 @@ id: crm-field-update-hygiene
 nome: "CRM Field Update / Data Hygiene"
 descricao_curta: "Higiene de dados no CRM — normaliza valores via IA e atualiza o campo no CRM via HTTP"
 categoria: comercial
-versao: 1.0.0
+versao: 1.1.0
 schema_version: 1
 autor: pipefy-template-store
 tags: [comercial, vendas, crm, data-hygiene, normalizacao]
@@ -144,19 +144,19 @@ automacoes:
   - id: aplicar-atualizacao-no-crm
     nome: "Atualizar campo no CRM quando validação for OK"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: validacao
     entao:
-      tipo: enviar_webhook
+      tipo: send_http_request
       webhook_id: webhook-crm-update
 
   - id: avancar-quando-validado
     nome: "Mover para Aplicado quando confirmação chega"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: confirmacao-crm
     entao:
-      tipo: mover_card
+      tipo: move_single_card
       fase_destino: aplicado
 ```
 

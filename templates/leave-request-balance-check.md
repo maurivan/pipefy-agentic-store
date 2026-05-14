@@ -3,7 +3,7 @@ id: leave-request-balance-check
 nome: Solicitação de Férias e Licenças
 descricao_curta: Fluxo simples de solicitação de férias/licenças com validação automática de saldo e conflito de calendário via IA, integrado a DB de saldo e ERP de folha.
 categoria: rh
-versao: 1.0.0
+versao: 1.1.0
 schema_version: 1
 autor: pipefy-template-store
 tags: [rh, ferias, licenca, saldo, calendario, ia]
@@ -173,28 +173,28 @@ automacoes:
   - id: avancar-para-aprovacao
     nome: "Avançar para Aprovação quando saldo OK"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: validacao
     entao:
-      tipo: mover_card
+      tipo: move_single_card
       fase_destino: aprovacao-gestor
 
   - id: webhook-erp-lancamento
     nome: "Lançar abono no ERP/folha após aprovação"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: decisao
     entao:
-      tipo: enviar_webhook
+      tipo: send_http_request
       webhook_id: lancar-erp-folha
 
   - id: alerta-saldo-insuficiente
     nome: "Marcar mensagem se saldo insuficiente"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: saldo-apos
     entao:
-      tipo: atualizar_campo
+      tipo: update_card_field
       campo: validacao
       valor: "Saldo Insuficiente"
 ```

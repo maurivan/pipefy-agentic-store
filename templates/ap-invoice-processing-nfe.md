@@ -2,7 +2,7 @@
 id: ap-invoice-processing-nfe
 nome: AP Invoice Processing (NF-e brasileiro)
 categoria: financeiro
-versao: 1.0.0
+versao: 1.1.0
 schema_version: 1
 descricao_curta: Processamento de Contas a Pagar com extração estruturada de NF-e/NFS-e/DANFE, validação SEFAZ e auto-aprovação para valores baixos.
 autor: pipefy-template-store
@@ -189,37 +189,37 @@ automacoes:
   - id: auto-move-extracao
     nome: "Auto-move para Extração ao criar card em Recebimento"
     quando:
-      evento: card_criado_em_fase
+      evento: card_created_in_phase
       fase: recebimento-nf
     entao:
-      tipo: mover_card
+      tipo: move_single_card
       fase_destino: extracao-classificacao
 
   - id: consulta-sefaz
     nome: "Consultar status na SEFAZ"
     quando:
-      evento: card_movido_para_fase
+      evento: card_moved_to_phase
       fase: validacao-fiscal
     entao:
-      tipo: enviar_webhook
+      tipo: send_http_request
       webhook_id: webhook-sefaz
 
   - id: auto-aprovacao-valor-baixo
     nome: "Auto-mover para Pagamento quando valor < limite"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: status_sefaz
     entao:
-      tipo: mover_card
+      tipo: move_single_card
       fase_destino: pagamento
 
   - id: agendar-pagamento
     nome: "Agendar pagamento no banco/ERP"
     quando:
-      evento: card_movido_para_fase
+      evento: card_moved_to_phase
       fase: pagamento
     entao:
-      tipo: enviar_webhook
+      tipo: send_http_request
       webhook_id: webhook-banco-pagamento
 ```
 

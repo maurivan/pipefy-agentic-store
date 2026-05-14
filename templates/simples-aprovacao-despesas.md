@@ -3,7 +3,7 @@ id: aprovacao-despesas
 nome: Aprovação de Despesas Corporativas
 descricao_curta: Fluxo de reembolso com alçadas por valor e SLA de 3 dias
 categoria: financeiro
-versao: 1.0.0
+versao: 1.1.0
 autor: pipefy-template-store
 tags: [financeiro, aprovacao, despesas, reembolso]
 icone: 💸
@@ -132,7 +132,7 @@ automacoes:
   - id: notificar-aprovador
     nome: "Notificar aprovador ao entrar em Aprovação"
     quando:
-      evento: card_movido_para_fase
+      evento: card_moved_to_phase
       fase: aprovacao
     entao:
       tipo: email
@@ -142,7 +142,7 @@ automacoes:
   - id: alerta-sla-aprovacao
     nome: "Alerta de SLA estourado em Aprovação"
     quando:
-      evento: prazo_estourado
+      evento: sla_based
       fase: aprovacao
     entao:
       tipo: email
@@ -152,7 +152,7 @@ automacoes:
   - id: notificar-solicitante-paga
     nome: "Notificar solicitante quando paga"
     quando:
-      evento: card_movido_para_fase
+      evento: card_moved_to_phase
       fase: paga
     entao:
       tipo: email

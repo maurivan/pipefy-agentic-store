@@ -3,7 +3,7 @@ id: kyc-periodic-refresh
 nome: "KYC Periodic Refresh"
 descricao_curta: "Refresh anual de KYC com scheduler, solicitação automática de documentos e re-validação por IA"
 categoria: juridico
-versao: 1.0.0
+versao: 1.1.0
 schema_version: 1
 autor: pipefy-template-store
 tags: [juridico, compliance, kyc, refresh, monitoramento]
@@ -187,20 +187,20 @@ automacoes:
   - id: bloqueio-por-sla
     nome: "Mover para Bloqueio se cliente não responder no SLA"
     quando:
-      evento: prazo_estourado
+      evento: sla_based
       fase: solicitacao-documentos
     entao:
-      tipo: atualizar_campo
+      tipo: update_card_field
       campo: decisao
       valor: "Bloqueado"
 
   - id: marcar-cnpj-divergente
     nome: "Flag P0 quando CNPJ divergente"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: cnpj_divergente
     entao:
-      tipo: enviar_webhook
+      tipo: send_http_request
       webhook_id: alerta-compliance-divergencia
 ```
 

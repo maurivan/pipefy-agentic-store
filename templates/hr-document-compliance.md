@@ -3,7 +3,7 @@ id: hr-document-compliance
 nome: Compliance de Documentos de RH
 descricao_curta: Gestão de certificações e exames ocupacionais (NR-10/NR-35/ASO) com validação por IA e alertas preventivos de vencimento.
 categoria: rh
-versao: 1.0.0
+versao: 1.1.0
 schema_version: 1
 autor: pipefy-template-store
 tags: [rh, compliance, certificacoes, nr, aso, ia]
@@ -159,28 +159,28 @@ automacoes:
   - id: bloqueio-acesso-vencido
     nome: "Bloqueio de acesso ao vencer"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: status-documento
     entao:
-      tipo: enviar_webhook
+      tipo: send_http_request
       webhook_id: bloqueio-acesso
 
   - id: mover-renovacao-quando-proximo
     nome: "Mover para Renovação ao detectar status próximo vencimento"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: status-documento
     entao:
-      tipo: mover_card
+      tipo: move_single_card
       fase_destino: renovacao
 
   - id: arquivar-pos-renovacao
     nome: "Arquivar quando renovação concluída"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: renovacao-concluida
     entao:
-      tipo: mover_card
+      tipo: move_single_card
       fase_destino: historico
 ```
 

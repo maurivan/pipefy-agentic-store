@@ -3,7 +3,7 @@ id: employee-onboarding
 nome: Onboarding de Funcionários
 descricao_curta: Onboarding completo de novos colaboradores em 5 fases, com IA extraindo documentos de admissão, IA gerando email corporativo padronizado, card conectado em Pipe IT e integração com Workspace API.
 categoria: rh
-versao: 1.0.0
+versao: 1.1.0
 schema_version: 1
 autor: pipefy-template-store
 tags: [rh, onboarding, admissao, hr-ops, ia, doc-extraction, workspace]
@@ -215,10 +215,10 @@ automacoes:
   - id: criar-card-pipe-it
     nome: "Criar card conectado no Pipe IT ao criar o onboarding"
     quando:
-      evento: card_criado_em_fase
+      evento: card_created_in_phase
       fase: pre-admissao
     entao:
-      tipo: criar_card_conectado
+      tipo: create_connected_card
       relation_id: rel-onboarding-it
       campos:
         nome-novo-funcionario: "{{ card.nome-completo }}"
@@ -228,19 +228,19 @@ automacoes:
   - id: criar-usuario-workspace
     nome: "Criar usuário no Workspace API quando email corporativo definido"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: email-corporativo
     entao:
-      tipo: enviar_webhook
+      tipo: send_http_request
       webhook_id: criar-usuario-workspace
 
   - id: agendar-avaliacao-30-dias
     nome: "Agendar avaliação de 30 dias após primeira semana"
     quando:
-      evento: card_movido_para_fase
+      evento: card_moved_to_phase
       fase: primeiro-dia
     entao:
-      tipo: atualizar_campo
+      tipo: update_card_field
       campo: avaliacao-30-dias
       valor: "{{ card.data-inicio }} + 30 dias"
 ```

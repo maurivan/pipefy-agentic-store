@@ -2,7 +2,7 @@
 id: contract-review-clauses
 nome: Contract Review (Cláusulas Críticas)
 categoria: juridico
-versao: 1.0.0
+versao: 1.1.0
 schema_version: 1
 descricao_curta: Revisão preliminar de contratos com detecção de 8 cláusulas críticas, score de risco numérico e routing condicional para revisor jurídico (sênior vs fast-track).
 autor: pipefy-template-store
@@ -179,28 +179,28 @@ automacoes:
   - id: routing-senior
     nome: "Routing para revisor sênior quando score >= threshold"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: score_risco
     entao:
-      tipo: mover_card
+      tipo: move_single_card
       fase_destino: revisao-juridica
 
   - id: webhook-gerar-url-assinatura
     nome: "Gerar URL de assinatura (DocuSign/Clicksign)"
     quando:
-      evento: card_movido_para_fase
+      evento: card_moved_to_phase
       fase: assinatura
     entao:
-      tipo: enviar_webhook
+      tipo: send_http_request
       webhook_id: webhook-assinatura
 
   - id: arquivar-pos-assinatura
     nome: "Arquivar card quando data de assinatura é preenchida"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: data_assinatura
     entao:
-      tipo: mover_card
+      tipo: move_single_card
       fase_destino: arquivado
 ```
 

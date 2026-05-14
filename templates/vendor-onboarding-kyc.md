@@ -2,7 +2,7 @@
 id: vendor-onboarding-kyc
 nome: Vendor Onboarding (KYC Fornecedor)
 categoria: operacoes
-versao: 1.0.0
+versao: 1.1.0
 schema_version: 1
 descricao_curta: KYC de fornecedor com extração estruturada do Cartão CNPJ, validação documental, check PEP/sanções e refresh automático a cada 12 meses.
 autor: pipefy-template-store
@@ -182,28 +182,28 @@ automacoes:
   - id: auto-move-validacao-ok
     nome: "Auto-move para Análise Compliance quando validação OK"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: status_validacao
     entao:
-      tipo: mover_card
+      tipo: move_single_card
       fase_destino: analise-compliance
 
   - id: webhook-pep-sanctions
     nome: "Disparar consulta PEP/Sanções"
     quando:
-      evento: card_movido_para_fase
+      evento: card_moved_to_phase
       fase: analise-compliance
     entao:
-      tipo: enviar_webhook
+      tipo: send_http_request
       webhook_id: webhook-pep-check
 
   - id: webhook-erp-criar-fornecedor
     nome: "Criar fornecedor no ERP ao aprovar"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: decisao_final
     entao:
-      tipo: enviar_webhook
+      tipo: send_http_request
       webhook_id: webhook-erp-vendor
 ```
 

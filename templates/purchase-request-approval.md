@@ -2,7 +2,7 @@
 id: purchase-request-approval
 nome: Solicitação e Aprovação de Compras
 categoria: operacoes
-versao: 1.0.0
+versao: 1.1.0
 schema_version: 1
 descricao_curta: Fluxo P2P de solicitação de compra com triagem, cotação, aprovação por alçada (lookup em DB) e emissão de PO via integração com ERP.
 autor: pipefy-template-store
@@ -186,28 +186,28 @@ automacoes:
   - id: auto-move-alcada-baixa
     nome: "Auto-move para Emissão PO se valor < limite_alcada_baixa"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: valor_final
     entao:
-      tipo: mover_card
+      tipo: move_single_card
       fase_destino: emissao-po
 
   - id: auto-move-aprovado
     nome: "Auto-move para Emissão PO quando decisão = Aprovado"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: decisao
     entao:
-      tipo: mover_card
+      tipo: move_single_card
       fase_destino: emissao-po
 
   - id: webhook-erp-emitir-po
     nome: "Disparar criação do PO no ERP"
     quando:
-      evento: card_movido_para_fase
+      evento: card_moved_to_phase
       fase: emissao-po
     entao:
-      tipo: enviar_webhook
+      tipo: send_http_request
       webhook_id: webhook-erp-po
 ```
 

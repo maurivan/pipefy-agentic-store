@@ -3,7 +3,7 @@ id: payment-approval-routing
 nome: Roteamento de Aprovação de Pagamentos
 descricao_curta: Esteira de aprovação de pagamentos com IA roteando até 3 aprovadores por alçada (tipo + valor), DB externalizada e execução automática no banco/ERP.
 categoria: financeiro
-versao: 1.0.0
+versao: 1.1.0
 schema_version: 1
 autor: pipefy-template-store
 tags: [financeiro, aprovacao, pagamentos, alcada, ia, approval-routing]
@@ -173,38 +173,38 @@ automacoes:
   - id: avancar-aprovacoes
     nome: "Mover para Aprovações após roteamento"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: aprovador-1
     entao:
-      tipo: mover_card
+      tipo: move_single_card
       fase_destino: aprovacoes
 
   - id: fast-track-baixo-valor
     nome: "Auto-mover para Execução se Aprovador 1 aprovou e valor baixo"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: status-aprovador-1
     entao:
-      tipo: mover_card
+      tipo: move_single_card
       fase_destino: execucao-pagamento
 
   - id: rejeitar-card
     nome: "Rejeitar card se qualquer aprovador rejeitou"
     quando:
-      evento: campo_atualizado
+      evento: field_updated
       campo: status-aprovador-1
     entao:
-      tipo: atualizar_campo
+      tipo: update_card_field
       campo: motivo-rejeicao
       valor: "Rejeitado pelo aprovador 1 — ver comentário"
 
   - id: executar-pagamento-banco
     nome: "Executar pagamento via banco/ERP quando todos aprovaram"
     quando:
-      evento: card_movido_para_fase
+      evento: card_moved_to_phase
       fase: execucao-pagamento
     entao:
-      tipo: enviar_webhook
+      tipo: send_http_request
       webhook_id: executar-pagamento-banco
 ```
 
