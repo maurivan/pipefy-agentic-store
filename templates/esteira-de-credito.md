@@ -2,9 +2,9 @@
 id: esteira-de-credito
 nome: Esteira de Crédito PJ
 categoria: financeiro
-versao: 1.1.0
+versao: 1.2.0
 schema_version: 1
-descricao_curta: Esteira completa de crédito PJ (50k–5M) em 6 fases — originação, KYC, análise, comitê, formalização, desembolso. IA extrai documentos, classifica rating setorial e resume operações para o comitê. Inclui auto-rotulagem, auto-move pós-análise, enriquecimento via ReceitaWS e webhook para core bancário.
+descricao_curta: Esteira completa de crédito PJ (50k–5M) em 6 fases — originação, KYC, análise, comitê, formalização, desembolso. IA extrai documentos, classifica rating setorial e resume operações para o comitê. Inclui auto-move pós-análise, enriquecimento via ReceitaWS e webhook para core bancário.
 autor: maurivan
 tags: [credito, financeiro, pj, fintech, banco, kyc, comite-credito, ia]
 icone: 💳
@@ -313,46 +313,15 @@ condicoes_campo:
 
 ## 🔔 Automações
 
-Duas famílias:
+Três famílias:
 
-- **Criáveis via API (não-email)** — o `agentic-store` cria automaticamente. Usam `add_label`, `move_card`, `send_http_request`.
+- **Criáveis via API** — o `agentic-store` cria automaticamente. Usam `move_single_card` e `send_http_request`.
+- **Não-automatizáveis (labels)** — Pipefy **não tem ação `add_label`** no catálogo de automation. As 4 labels (`urgente`, `restricao-compliance`, `renovacao`, `excecao-alcada`) ficam disponíveis para uso **manual** pelo analista.
 - **Manuais (tipo email)** — a API GraphQL do Pipefy não expõe `createEmailTemplate`; ficam documentadas como intenção para o usuário configurar via UI após a criação do pipe.
 
 ```yaml
 automacoes:
-  # ─── Auto-rotulagem (add_label) ──────────────────────────────────────
-
-  - id: marcar-excecao-alcada
-    nome: "Marcar exceção de alçada quando valor > limite"
-    quando:
-      evento: field_updated
-      campo: valor-solicitado
-      condicao: "card.valor-solicitado > {{ alcada_simples_brl }}"
-    entao:
-      tipo: add_label
-      label: excecao-alcada
-
-  - id: marcar-restricao-compliance
-    nome: "Marcar restrição de compliance quando flag for Sim"
-    quando:
-      evento: field_updated
-      campo: compliance-flag
-      condicao: "card.compliance-flag == 'Sim'"
-    entao:
-      tipo: add_label
-      label: restricao-compliance
-
-  - id: marcar-renovacao
-    nome: "Marcar card de renovação automaticamente"
-    quando:
-      evento: field_updated
-      campo: origem-lead
-      condicao: "card.origem-lead == 'Renovação'"
-    entao:
-      tipo: add_label
-      label: renovacao
-
-  # ─── Handoff entre fases (move_card) ─────────────────────────────────
+  # ─── Handoff entre fases (move_single_card) ──────────────────────────
 
   - id: auto-mover-comite-apos-parecer
     nome: "Mover para Comitê após parecer do analista"
@@ -360,16 +329,16 @@ automacoes:
       evento: field_updated
       campo: parecer-credito
     entao:
-      tipo: move_card
+      tipo: move_single_card
       fase_destino: comite
 
   # ─── Enriquecimento externo (send_http_request) ──────────────────────
 
   - id: enriquecer-cnpj-receitaws
-    nome: "Buscar dados oficiais do CNPJ ao entrar em Análise"
+    nome: "Buscar dados oficiais do CNPJ ao preencher campo CNPJ"
     quando:
-      evento: card_moved_to_phase
-      fase: analise-credito
+      evento: field_updated
+      campo: cnpj
     entao:
       tipo: send_http_request
       method: GET
@@ -667,12 +636,17 @@ webhooks:
 2. **Criar os 5 email templates via UI** (a API GraphQL do Pipefy não expõe `createEmailTemplate`) e em seguida criar as 5 automações tipo email no editor de automações:
    - `kyc-pendencias` · `aprovacao-aprovada` · `aprovacao-rejeitada` · `desembolso-realizado` · `alerta-sla-comite`
    - O conteúdo (assunto + corpo) está documentado em `## 📧 Email Templates` deste arquivo — copie de lá.
-3. **Validar a automação de enriquecimento ReceitaWS** — o endpoint público tem rate limit (3 req/min). Em produção, use uma chave paga ou troque para outro provedor (Serasa, Boa Vista, Casa dos Dados).
-4. **Validar a alçada simples** — o valor default de {{ alcada_simples_brl }} é conservador para fintechs em estágio inicial. Mesas mais maduras costumam operar com alçada por matriz (rating × valor).
-5. **Webhook do core bancário**:
+3. **Uso manual dos labels** — Pipefy não tem ação `add_label` no catálogo de automation, então os 4 labels criados (Urgente, Restrição de Compliance, Renovação, Exceção de alçada) ficam disponíveis para o analista aplicar manualmente. Critérios sugeridos:
+   - **Urgente** — operações com prazo apertado ou cliente VIP.
+   - **Restrição de Compliance** — aplicar quando `compliance-flag = Sim` for preenchido pela IA (visualizar no Kanban).
+   - **Renovação** — aplicar quando `origem-lead = Renovação` no formulário inicial.
+   - **Exceção de alçada** — aplicar quando `valor-solicitado > {{ alcada_simples_brl }}` na originação.
+4. **Validar a automação de enriquecimento ReceitaWS** — o endpoint público tem rate limit (3 req/min). Em produção, use uma chave paga ou troque para outro provedor (Serasa, Boa Vista, Casa dos Dados).
+5. **Validar a alçada simples** — o valor default de {{ alcada_simples_brl }} é conservador para fintechs em estágio inicial. Mesas mais maduras costumam operar com alçada por matriz (rating × valor).
+6. **Webhook do core bancário**:
    - Se você ainda não tem integração com o core, deixe `webhook_core_bancario_url` em branco — o webhook não será criado.
    - Quando integrar, configure o endpoint para validar o `X-Pipefy-Signature` e tratar o payload como **comando idempotente** (Pipefy faz retry em falhas).
    - O Pipefy envia todos os campos do card no payload por default; restrinja no consumidor para `valor-desembolsado`, `cnpj`, `data-desembolso`, `conta-credito`.
-6. **Calibrar os prompts da IA** após as primeiras 20-30 operações reais — especialmente o behavior de rating, que se beneficia muito de ajuste de régua com base no portfólio real.
-7. **Membros do pipe**: adicione manualmente o time de analistas (acesso de escrita), comitê (leitura + decisão na fase Comitê), formalização (escrita na fase Formalização) e financeiro (escrita na fase Desembolso).
-8. **Considere conectar com pipes irmãos** (post-MVP): "Cobrança" para inadimplência, "Renovação" para clientes recorrentes, "Originação Parceiros" para esteira de leads.
+7. **Calibrar os prompts da IA** após as primeiras 20-30 operações reais — especialmente o behavior de rating, que se beneficia muito de ajuste de régua com base no portfólio real.
+8. **Membros do pipe**: adicione manualmente o time de analistas (acesso de escrita), comitê (leitura + decisão na fase Comitê), formalização (escrita na fase Formalização) e financeiro (escrita na fase Desembolso).
+9. **Considere conectar com pipes irmãos** (post-MVP): "Cobrança" para inadimplência, "Renovação" para clientes recorrentes, "Originação Parceiros" para esteira de leads.
