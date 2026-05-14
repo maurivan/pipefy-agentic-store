@@ -8,7 +8,7 @@ schema_version: 1
 autor: pipefy-template-store
 tags: [comercial, o2c, aprovacao, credito, validacao, ia]
 icone: 🧮
-tempo_estimado_clonagem: "~65 segundos"
+tempo_estimado_criacao: "~65 segundos"
 fases_count: 5
 campos_count: 17
 requer_ai_agents: true
@@ -31,7 +31,7 @@ Pedidos que excedem o limite ou apresentam risco de inadimplência são automati
 - Output enum (5 categorias) elimina ambiguidade na decisão de aprovação.
 - Auditoria completa: cada decisão fica registrada com timestamp e responsável.
 
-## ⚙️ Variáveis de clonagem
+## ⚙️ Variáveis de criação
 
 ```yaml
 variaveis:
@@ -351,7 +351,7 @@ webhooks:
       origem: "pipefy-order-approval"
 ```
 
-## 📌 Pós-clonagem
+## 📌 Pós-criação
 
 1. **Configurar notificações por email manualmente via UI** — o template não automatiza emails. Crie via Pipefy UI: alerta para `{{ comercial_responsavel_email }}` em SLA estourado da fase "Aprovação", para o aprovador (campo `aprovador`) quando entra em Aprovação, e para o cliente quando "Entrega" muda para `Entregue`.
 2. **Apontar `pipe_analise_credito_id`** — informe o ID do sub-pipe de Análise de Crédito existente. Se ainda não existir, crie um pipe simples (3 fases: triagem / análise / decisão) antes.

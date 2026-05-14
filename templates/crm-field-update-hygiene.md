@@ -8,7 +8,7 @@ schema_version: 1
 autor: pipefy-template-store
 tags: [comercial, vendas, crm, data-hygiene, normalizacao]
 icone: "🧹"
-tempo_estimado_clonagem: "~25 segundos"
+tempo_estimado_criacao: "~25 segundos"
 fases_count: 3
 campos_count: 10
 requer_ai_agents: true
@@ -39,7 +39,7 @@ problemas recorrentes de formatação inconsistente, deduplicação leve, padron
 - Bloqueio explícito de updates inválidos antes de chegar no CRM
 - Volume alto suportado — agente é leve, prompt mínimo
 
-## ⚙️ Variáveis de clonagem
+## ⚙️ Variáveis de criação
 
 ```yaml
 variaveis:
@@ -203,7 +203,7 @@ webhooks:
       template_id: "crm-field-update-hygiene"
 ```
 
-## 📌 Pós-clonagem
+## 📌 Pós-criação
 
 - **URL do CRM** (`{{ crm_update_url }}`) deve apontar para o endpoint real de atualização (Salesforce REST API, HubSpot, Pipedrive — o que estiver em uso).
 - **Validação determinística** acontece na fase `Validação` — adicione regras pelo Pipefy (regex no campo, comprimento mínimo) OU integre com um validador externo via webhook. O agente NÃO valida — só normaliza.

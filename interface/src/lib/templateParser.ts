@@ -8,7 +8,7 @@ export type TemplateFrontmatter = {
   versao: string;
   tags: string[];
   icone?: string;
-  tempo_estimado_clonagem?: string;
+  tempo_estimado_criacao?: string;
   fases_count: number;
   campos_count: number;
   schema_version: number;
@@ -143,8 +143,8 @@ function parseFrontmatter(raw: string): { frontmatter: TemplateFrontmatter; body
     versao: String(data.versao ?? ""),
     tags: asArray<string>(data.tags),
     icone: data.icone != null ? String(data.icone) : undefined,
-    tempo_estimado_clonagem:
-      data.tempo_estimado_clonagem != null ? String(data.tempo_estimado_clonagem) : undefined,
+    tempo_estimado_criacao:
+      data.tempo_estimado_criacao != null ? String(data.tempo_estimado_criacao) : undefined,
     fases_count: Number(data.fases_count ?? 0),
     campos_count: Number(data.campos_count ?? 0),
     schema_version: Number(data.schema_version ?? 1),

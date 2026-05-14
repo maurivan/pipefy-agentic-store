@@ -7,7 +7,7 @@ versao: 1.1.0
 autor: pipefy-template-store
 tags: [onboarding, b2b, customer-success, vendas, ia]
 icone: 🤝
-tempo_estimado_clonagem: "~45 segundos"
+tempo_estimado_criacao: "~45 segundos"
 fases_count: 5
 campos_count: 16
 schema_version: 1
@@ -36,7 +36,7 @@ Recorrente para handoff pós-onboarding.
 - Padronizar handoff entre Vendas e CS
 - Triagem automática de prioridade via IA
 
-## ⚙️ Variáveis de clonagem
+## ⚙️ Variáveis de criação
 
 ```yaml
 variaveis:
@@ -285,7 +285,7 @@ automacoes:
       assunto: "⚠️ SLA estourado: {{ card.nome_cliente }}"
 ```
 
-## 📌 Pós-clonagem: ajustes manuais sugeridos
+## 📌 Pós-criação: ajustes manuais sugeridos
 
 - Conectar manualmente o pipe de Suporte Recorrente se não foi passado o ID
 - Configurar permissões por fase (quem pode mover cards)

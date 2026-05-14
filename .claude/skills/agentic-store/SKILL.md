@@ -1,13 +1,13 @@
 ---
 name: agentic-store
-description: Clona um template de processo do Pipefy (pipe + fases + campos + AI Agents + relações) escolhido interativamente do repositório remoto `maurivan/pipefy-agentic-store` no GitHub, usando o MCP pipefy.
+description: Cria a partir de um template de processo do Pipefy (pipe + fases + campos + AI Agents + relações) escolhido interativamente do repositório remoto `maurivan/pipefy-agentic-store` no GitHub, usando o MCP pipefy.
 ---
 
-# Agentic Store — Clonagem de Templates Pipefy
+# Agentic Store — Criação de Templates Pipefy
 
-Clone um template de processo da pasta `templates/` do repo público **`maurivan/pipefy-agentic-store`** (branch `main`) usando o MCP `pipefy`.
+Crie um pipe a partir do template de processo da pasta `templates/` do repo público **`maurivan/pipefy-agentic-store`** (branch `main`) usando o MCP `pipefy`.
 
-Cada template é um `.md` com **YAML frontmatter** (`id`, `nome`, `descricao_curta`, `categoria`, `fases_count`, `campos_count`, `requer_ai_agents`, `icone`, etc.) + conteúdo a clonar.
+Cada template é um `.md` com **YAML frontmatter** (`id`, `nome`, `descricao_curta`, `categoria`, `fases_count`, `campos_count`, `requer_ai_agents`, `icone`, etc.) + conteúdo a criar.
 
 ## Regra de shell
 
@@ -111,7 +111,7 @@ Numa **única mensagem**, liste todas as variáveis numeradas com seus `label`, 
 
 Mostre exatamente 5 linhas:
 
-1. `Vou clonar "<nome>" (<fases_count> fases, <campos_count> campos)`
+1. `Vou criar "<nome>" (<fases_count> fases, <campos_count> campos)`
 2. Total estimado de tool calls (some labels + tables + condições + automações + webhooks se as seções existirem)
 3. Ordem: pipe → labels → database_tables → fases → campos → field_conditions → automações → AI agents → pipe_relation → webhooks (se aplicáveis)
 4. Variáveis aplicadas (resumo curto)
@@ -119,7 +119,7 @@ Mostre exatamente 5 linhas:
 
 **Siga direto para o passo 6 após mostrar o plano** — não espere "pode executar". O usuário interrompe a sessão se algo estiver errado. Isso é intencional: o plano dá visibilidade pra interrupção, mas não bloqueia a execução.
 
-### 6. Executar clonagem
+### 6. Executar criação
 
 1. **Criar o pipe.** Não tente setar `aiAgentsEnabled` via `update_pipe.preferences` — esse campo **não existe** em `RepoPreferenceInput`. AI Agents são habilitados implicitamente quando você cria o primeiro agent. Guarde `pipe_id`.
    - O Pipefy cria 3 fases default (`Inbox`/`Doing`/`Done` ou versão localizada). **Não delete agora** — Pipefy exige ao menos 1 fase no pipe; deletamos depois de criar as fases custom (passo 4b).
@@ -169,7 +169,7 @@ Mostre exatamente 5 linhas:
 - URL: `https://app.pipefy.com/pipes/<pipe_id>`
 - Contagem: labels, tables (+ colunas), fases, campos, condições de campo, automações, AI agents, webhooks criados
 - Fases default deletadas (3 esperadas; se < 3, listar quais sobraram com motivo)
-- **TODOs manuais pós-clone (sempre listar):**
+- **TODOs manuais pós-criação (sempre listar):**
   - Webhook(s) pulados por URL inválida (se houver)
   - Popular database tables vazias (se houver)
 

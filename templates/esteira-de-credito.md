@@ -8,7 +8,7 @@ descricao_curta: Esteira completa de crédito PJ (50k–5M) em 6 fases — origi
 autor: maurivan
 tags: [credito, financeiro, pj, fintech, banco, kyc, comite-credito, ia]
 icone: 💳
-tempo_estimado_clonagem: "~90 segundos"
+tempo_estimado_criacao: "~90 segundos"
 requer_ai_agents: true
 requer_database_tables: true
 fases_count: 6
@@ -32,7 +32,7 @@ Esteira de concessão de crédito para Pessoa Jurídica (ticket médio R$ 50k–
 - **Compliance e auditoria**: cada decisão tem justificativa registrada na fase em que aconteceu.
 - **Integração com core bancário**: desembolso dispara webhook automaticamente.
 
-## ⚙️ Variáveis de clonagem
+## ⚙️ Variáveis de criação
 
 ```yaml
 variaveis:
@@ -596,7 +596,7 @@ webhooks:
       origem: "esteira-de-credito"
 ```
 
-## 📌 Pós-clonagem
+## 📌 Pós-criação
 
 1. **Popular a table `setores_risco`** — sem ela, o behavior "Classificação de rating" do AI Agent não tem como puxar rating setorial. Cadastre pelo menos as 10-20 categorias CNAE mais relevantes do seu portfólio.
 2. **Validar a alçada simples** — o valor default de {{ alcada_simples_brl }} é conservador para fintechs em estágio inicial. Mesas mais maduras costumam operar com alçada por matriz (rating × valor).

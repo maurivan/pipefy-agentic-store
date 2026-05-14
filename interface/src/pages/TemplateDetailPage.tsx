@@ -160,8 +160,8 @@ export function TemplateDetailPage() {
               {camposParsed > 0 ? (
                 <span className="pill pill-muted">{camposParsed} campos no YAML</span>
               ) : null}
-              {fm.tempo_estimado_clonagem ? (
-                <span className="pill pill-muted">Clone ~ {fm.tempo_estimado_clonagem}</span>
+              {fm.tempo_estimado_criacao ? (
+                <span className="pill pill-muted">Criação ~ {fm.tempo_estimado_criacao}</span>
               ) : null}
               {fm.requer_ai_agents ? <span className="pill pill-ai">AI Agents</span> : null}
               {fm.requer_database_tables ? <span className="pill pill-db">Database tables</span> : null}
@@ -186,7 +186,7 @@ export function TemplateDetailPage() {
           {template.aiAgents.length > 0 ? <a href="#ai-agents">AI Agents</a> : null}
           {template.pipeRelations.length > 0 ? <a href="#relacoes">Pipe relations</a> : null}
           {template.emailTemplates.length > 0 ? <a href="#emails">Email templates</a> : null}
-          {template.variaveis.length > 0 ? <a href="#variaveis">Variáveis de clonagem</a> : null}
+          {template.variaveis.length > 0 ? <a href="#variaveis">Variáveis de criação</a> : null}
         </nav>
 
         {template.sobreMarkdown ? (
@@ -329,9 +329,9 @@ export function TemplateDetailPage() {
         ) : null}
 
         {template.variaveis.length > 0 ? (
-          <Section title="Variáveis de clonagem" id="variaveis">
+          <Section title="Variáveis de criação" id="variaveis">
             <p className="muted small">
-              Valores que o usuário informa ao clonar com a skill <code>/agentic-store</code>.
+              Valores que o usuário informa ao criar com a skill <code>/agentic-store</code>.
             </p>
             <div className="table-wrap">
               <table className="data-table">

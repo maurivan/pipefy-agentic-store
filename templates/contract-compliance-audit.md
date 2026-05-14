@@ -8,7 +8,7 @@ schema_version: 1
 autor: pipefy-template-store
 tags: [juridico, compliance, auditoria, contratos, evidencias]
 icone: "🔍"
-tempo_estimado_clonagem: "~40 segundos"
+tempo_estimado_criacao: "~40 segundos"
 fases_count: 5
 campos_count: 17
 requer_ai_agents: true
@@ -41,7 +41,7 @@ portfólio de contratos críticos.
 - Plano de ação derivado das não-conformidades, com follow-up obrigatório
 - Alerta automático quando score cai abaixo do threshold
 
-## ⚙️ Variáveis de clonagem
+## ⚙️ Variáveis de criação
 
 ```yaml
 variaveis:
@@ -282,7 +282,7 @@ webhooks:
       threshold: "{{ score_alerta_p0 }}"
 ```
 
-## 📌 Pós-clonagem
+## 📌 Pós-criação
 
 - **Configure scheduler externo** (cron, n8n) para criar cards anualmente OU configure no pipe de contratos um trigger no campo "Próxima auditoria".
 - **Configure manualmente via UI** uma notificação ao auditor quando o card cair em `Coleta de evidência`.

@@ -8,7 +8,7 @@ schema_version: 1
 autor: pipefy-template-store
 tags: [juridico, compliance, kyc, refresh, monitoramento]
 icone: "🔄"
-tempo_estimado_clonagem: "~45 segundos"
+tempo_estimado_criacao: "~45 segundos"
 fases_count: 4
 campos_count: 16
 requer_ai_agents: true
@@ -41,7 +41,7 @@ qualquer empresa com obrigação de KYC recorrente.
 - Re-validação automatizada — compliance officer só atua em exceções
 - Visibilidade do funil de refresh (agendados / em coleta / aprovados / bloqueados)
 
-## ⚙️ Variáveis de clonagem
+## ⚙️ Variáveis de criação
 
 ```yaml
 variaveis:
@@ -347,11 +347,11 @@ webhooks:
       severity: "P0"
 ```
 
-## 📌 Pós-clonagem
+## 📌 Pós-criação
 
 - **Scheduler**: configure manualmente um job diário (cron externo, n8n, Zapier ou similar) que consulte a DB `Clientes (KYC)` e crie um card em `Refresh agendado` quando `proximo_refresh - hoje < 30 dias`. O Pipefy não tem cron nativo para criação de cards.
 - **Notificação ao cliente**: configure manualmente via UI um email de solicitação de documentos disparado ao mover para `Solicitação de documentos` (template não inclui email automatizado).
 - **Popule a DB `Clientes (KYC)`** com sua base atual antes de ativar o pipe.
 - **URL do webhook de compliance** (`{{ webhook_compliance_url }}`) deve ser configurada para o seu canal preferido (Slack, Teams, sistema interno).
 - **Permissões**: restrinja escrita na fase `Decisão` para o time de compliance.
-- **Verifique** que o pipe original de KYC (`{{ kyc_pipe_id }}`) existe na organização antes da clonagem.
+- **Verifique** que o pipe original de KYC (`{{ kyc_pipe_id }}`) existe na organização antes da criação.

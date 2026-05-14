@@ -8,7 +8,7 @@ descricao_curta: Revisão preliminar de contratos com detecção de 8 cláusulas
 autor: pipefy-template-store
 tags: [contratos, juridico, doc-extraction, compliance, lgpd, docusign, ia]
 icone: 📝
-tempo_estimado_clonagem: "~75 segundos"
+tempo_estimado_criacao: "~75 segundos"
 fases_count: 6
 campos_count: 19
 requer_ai_agents: true
@@ -31,7 +31,7 @@ Pipeline jurídico de **revisão preliminar de contratos**: upload, análise por
 - Renovação proativa via card automático 90 dias antes do vencimento.
 - Trilha de revisão jurídica completa do upload ao arquivamento.
 
-## ⚙️ Variáveis de clonagem
+## ⚙️ Variáveis de criação
 
 ```yaml
 variaveis:
@@ -285,9 +285,9 @@ webhooks:
       X-Source: "pipefy-template-store"
 ```
 
-## 📌 Pós-clonagem
+## 📌 Pós-criação
 
-- Configure a URL real do webhook da plataforma de assinatura (DocuSign / Clicksign) durante a clonagem.
+- Configure a URL real do webhook da plataforma de assinatura (DocuSign / Clicksign) durante a criação.
 - Configure manualmente via UI um **webhook in** apontando para o pipe que receba callback de assinatura externa — quando o contrato for assinado fora do Pipefy, esse callback move o card para Arquivado.
 - Configure manualmente via UI um **scheduler de renovação**: 90 dias antes de `vigencia_fim`, criar um card novo de renovação. Isso requer um cron/automação externa ou recurso de scheduler do plano Pipefy.
 - Configure manualmente notificação por email para o revisor jurídico quando o card cair em Revisão Jurídica com score ≥ threshold (template não inclui email).

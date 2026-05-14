@@ -8,7 +8,7 @@ schema_version: 1
 autor: pipefy-template-store
 tags: [rh, onboarding, admissao, hr-ops, ia, doc-extraction, workspace]
 icone: 🧑‍💼
-tempo_estimado_clonagem: "~75 segundos"
+tempo_estimado_criacao: "~75 segundos"
 fases_count: 5
 campos_count: 24
 requer_ai_agents: true
@@ -32,7 +32,7 @@ Esteira completa de onboarding de novos colaboradores, da pré-admissão ao 30º
 - Onboarding técnico (acesso, notebook) sincronizado com Pipe IT via card conectado.
 - Avaliação de 30 dias agendada automaticamente — sem cair no esquecimento.
 
-## ⚙️ Variáveis de clonagem
+## ⚙️ Variáveis de criação
 
 ```yaml
 variaveis:
@@ -376,10 +376,10 @@ webhooks:
       dominio: "{{ dominio_empresa }}"
 ```
 
-## 📌 Pós-clonagem
+## 📌 Pós-criação
 
 1. **Popular DB `departamentos`** — sem ela, o routing de aprovações fica solto. Importe via CSV ou conecte ao seu HRIS.
-2. **Pipe IT existente** — o `{{ pipe_it_id }}` precisa ser um pipe já criado no seu workspace. Se não tiver, crie um pipe IT mínimo (Solicitação → Provisionamento → Entregue) antes de clonar este.
+2. **Pipe IT existente** — o `{{ pipe_it_id }}` precisa ser um pipe já criado no seu workspace. Se não tiver, crie um pipe IT mínimo (Solicitação → Provisionamento → Entregue) antes de criar este.
 3. **Workspace API** — configure URL/token do Google Workspace Admin SDK ou Microsoft Graph para criar usuários automaticamente. Deixe vazio durante o piloto e teste em sandbox.
 4. **Notificações por email** — configure manualmente via UI:
    - Welcome email ao novo colaborador no `email-pessoal` ao entrar em Primeiro Dia.

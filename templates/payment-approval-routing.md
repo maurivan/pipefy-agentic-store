@@ -8,7 +8,7 @@ schema_version: 1
 autor: pipefy-template-store
 tags: [financeiro, aprovacao, pagamentos, alcada, ia, approval-routing]
 icone: 💰
-tempo_estimado_clonagem: "~60 segundos"
+tempo_estimado_criacao: "~60 segundos"
 fases_count: 4
 campos_count: 16
 requer_ai_agents: true
@@ -32,7 +32,7 @@ Esteira de aprovação de pagamentos (fornecedor, reembolso, pró-labore, outros
 - Rejeição por qualquer aprovador encerra o card imediatamente (não desperdiça tempo dos outros).
 - Execução automática no banco/ERP após aprovação final — sem retipagem.
 
-## ⚙️ Variáveis de clonagem
+## ⚙️ Variáveis de criação
 
 ```yaml
 variaveis:
@@ -327,7 +327,7 @@ webhooks:
       origem: "pipefy-payment-approval"
 ```
 
-## 📌 Pós-clonagem
+## 📌 Pós-criação
 
 1. **Popular DB `alcadas-aprovacao`** — sem ela o agente devolve sempre `REVISAO_MANUAL`. Cadastre as faixas reais da sua empresa (tipicamente 4-12 linhas).
 2. **Mapear papéis para user_ids reais** — substitua strings genéricas como `gerente_compras`, `cfo` pelos IDs reais dos usuários Pipefy. Considere manter uma view auxiliar com a tabela "papel → user_id" para o time de admin.

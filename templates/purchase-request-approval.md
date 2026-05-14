@@ -8,7 +8,7 @@ descricao_curta: Fluxo P2P de solicitação de compra com triagem, cotação, ap
 autor: pipefy-template-store
 tags: [compras, p2p, aprovacao, procurement, po, alcadas, ia]
 icone: 🛒
-tempo_estimado_clonagem: "~75 segundos"
+tempo_estimado_criacao: "~75 segundos"
 fases_count: 5
 campos_count: 21
 requer_ai_agents: true
@@ -31,7 +31,7 @@ Processo backoffice de Purchase-to-Pay focado na ponta de **solicitação, cota�
 - PO emitido no ERP automaticamente sem dupla digitação.
 - Visibilidade total do backlog de Compras em um único Kanban.
 
-## ⚙️ Variáveis de clonagem
+## ⚙️ Variáveis de criação
 
 ```yaml
 variaveis:
@@ -327,11 +327,11 @@ webhooks:
       X-Source: "pipefy-template-store"
 ```
 
-## 📌 Pós-clonagem
+## 📌 Pós-criação
 
 - Popule a Database Table **Alçadas de Aprovação** com as faixas reais da sua empresa (centro de custo × faixa de valor → aprovador). Sem isso, o AI Agent não consegue rotear.
 - Popule **Fornecedores** com o cadastro inicial (pode ser CSV import).
 - Adicione os aprovadores como membros do pipe — `assignee_select` só lista membros.
-- Configure a URL real do webhook do ERP em `webhook_erp_url` durante a clonagem.
+- Configure a URL real do webhook do ERP em `webhook_erp_url` durante a criação.
 - Configure manualmente via UI a notificação por email para o solicitante quando a decisão for atualizada (Aprovado / Reprovado / Solicita ajuste). O template não inclui email templates.
 - Ative o time de Compras na fase Triagem & Cotação para que round-robin de assignee funcione (configurar via UI).

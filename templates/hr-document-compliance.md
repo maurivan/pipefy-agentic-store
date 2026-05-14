@@ -8,7 +8,7 @@ schema_version: 1
 autor: pipefy-template-store
 tags: [rh, compliance, certificacoes, nr, aso, ia]
 icone: 📋
-tempo_estimado_clonagem: "~50 segundos"
+tempo_estimado_criacao: "~50 segundos"
 fases_count: 4
 campos_count: 12
 requer_ai_agents: true
@@ -31,7 +31,7 @@ A IA atua na entrada dos documentos: lê o certificado anexado, confere se o tip
 - Integração com sistema de controle de acesso para bloqueio automático de vencidos.
 - Histórico consolidado por funcionário facilita auditorias internas e fiscais.
 
-## ⚙️ Variáveis de clonagem
+## ⚙️ Variáveis de criação
 
 ```yaml
 variaveis:
@@ -302,7 +302,7 @@ webhooks:
       acao: "bloquear_acesso"
 ```
 
-## 📌 Pós-clonagem
+## 📌 Pós-criação
 
 1. **Popular a database `DB Tipos de Documentos RH`** com os documentos que sua empresa controla (NR-10 a cada 2 anos, ASO anual, etc.) — o template já lista os tipos no dropdown, mas a tabela serve como referência cruzada.
 2. **Configurar notificações por email manualmente via UI** — o template intencionalmente não inclui automações de email. Crie via Pipefy UI: alerta para `{{ rh_responsavel_email }}` quando status mudar para "Próximo vencimento" e para o funcionário (campo `funcionario`) quando entrar em "Renovação".

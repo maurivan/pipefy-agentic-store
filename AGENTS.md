@@ -4,7 +4,7 @@ Guia para agentes de IA (Claude Code, etc.) que vão modificar este repositório
 
 ## O que este repo é
 
-Um catálogo público de **templates de processo do Pipefy** clonáveis via Claude Code + MCP do Pipefy. O foco do repositório é Markdown + skills; não há pipeline de deploy nem test suite global. É composto principalmente de:
+Um catálogo público de **templates de processo do Pipefy** disponíveis via Claude Code + MCP do Pipefy. O foco do repositório é Markdown + skills; não há pipeline de deploy nem test suite global. É composto principalmente de:
 
 1. **Templates** em `templates/*.md` — arquivos Markdown com YAML frontmatter descrevendo pipes (fases, campos, AI Agents, relações).
 2. **Skills** do Claude Code em `.claude/skills/` — descritas em `SKILL.md` com frontmatter `name` + `description`.
@@ -24,7 +24,7 @@ Não introduza framework, package manager, CI, lint, ou test runner **na raiz do
 │   └── <slug>.md
 └── .claude/skills/
     ├── install-pipefy-mcp/SKILL.md      # Bootstrap do servidor MCP do Pipefy
-    └── agentic-store/SKILL.md           # Clonagem interativa de templates
+    └── agentic-store/SKILL.md           # Criação interativa de templates
 ```
 
 ## Skills — limites e responsabilidades
@@ -53,13 +53,13 @@ Cada arquivo em `templates/` precisa de:
 
 - **Slug** (`id`) em kebab-case, igual ao nome do arquivo sem `.md`.
 - **Frontmatter completo** — ver `README.md` para a tabela de campos obrigatórios.
-- **Placeholders `{{ variavel }}`** com `snake_case` para valores que o usuário preenche na clonagem. Mantenha os espaços: `{{ nome_do_pipe }}`, não `{{nome_do_pipe}}` — o regex da skill aceita os dois, mas a convenção é com espaço.
+- **Placeholders `{{ variavel }}`** com `snake_case` para valores que o usuário preenche na criação. Mantenha os espaços: `{{ nome_do_pipe }}`, não `{{nome_do_pipe}}` — o regex da skill aceita os dois, mas a convenção é com espaço.
 - **`fases_count` e `campos_count` corretos** — a skill mostra esses números na escolha; valores errados confundem o usuário.
 - **`requer_ai_agents: true`** se houver `ai_agents` no corpo; isso vira badge na lista.
 
 Ao criar/editar templates:
 
-1. Bumpe a `versao` (SemVer) — patch para correções, minor para campos/fases novos, major se quebra clonagens existentes.
+1. Bumpe a `versao` (SemVer) — patch para correções, minor para campos/fases novos, major se quebra criações existentes.
 2. Mantenha `schema_version: 1` enquanto não mudarmos o schema do frontmatter.
 3. Não use templates como teste — eles são produção. Para experimentar, abra PR e teste via branch antes de mergear.
 

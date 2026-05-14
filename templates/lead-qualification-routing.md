@@ -8,7 +8,7 @@ schema_version: 1
 autor: pipefy-template-store
 tags: [comercial, vendas, leads, scoring, sdr, routing]
 icone: "🎯"
-tempo_estimado_clonagem: "~30 segundos"
+tempo_estimado_criacao: "~30 segundos"
 fases_count: 5
 campos_count: 15
 requer_ai_agents: true
@@ -39,7 +39,7 @@ formulários ou inbound, ICP claro o suficiente para scoring por regra.
 - Reunião agendada via Calendly conectado ao card
 - CRM criado em background — vendedor não digita duas vezes
 
-## ⚙️ Variáveis de clonagem
+## ⚙️ Variáveis de criação
 
 ```yaml
 variaveis:
@@ -314,9 +314,9 @@ webhooks:
       Authorization: "Bearer {{ crm_token }}"
 ```
 
-## 📌 Pós-clonagem
+## 📌 Pós-criação
 
-- **URLs de Clearbit/Apollo, Calendly e CRM** devem ser configuradas com os endpoints reais da sua stack. As variáveis colocadas na clonagem são placeholders.
+- **URLs de Clearbit/Apollo, Calendly e CRM** devem ser configuradas com os endpoints reais da sua stack. As variáveis colocadas na criação são placeholders.
 - **Configure manualmente via UI** notificações ao SDR quando um lead cair em `Qualificação` (template não inclui emails automatizados).
 - **Popule a database table `ICP / Segmentos`** com seus segmentos prioritários — opcionalmente substitua o prompt do agente por uma versão que consulte a tabela.
 - **Ajuste o threshold** da automação `auto-avancar-sql` para `score >= {{ score_sql_minimo }}` no editor do Pipefy.

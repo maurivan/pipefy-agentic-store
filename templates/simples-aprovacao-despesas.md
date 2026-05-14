@@ -7,7 +7,7 @@ versao: 1.0.0
 autor: pipefy-template-store
 tags: [financeiro, aprovacao, despesas, reembolso]
 icone: 💸
-tempo_estimado_clonagem: "~25 segundos"
+tempo_estimado_criacao: "~25 segundos"
 fases_count: 4
 campos_count: 9
 schema_version: 1
@@ -30,7 +30,7 @@ até R$ 500 aprovação direta do gestor; acima disso, dupla aprovação.
 - Eliminar emails perdidos sobre status de aprovação
 - Trilha de auditoria automática
 
-## ⚙️ Variáveis de clonagem
+## ⚙️ Variáveis de criação
 
 ```yaml
 variaveis:
@@ -209,7 +209,7 @@ email_templates:
     de: "no-reply@suaempresa.com"
 ```
 
-## 📌 Pós-clonagem
+## 📌 Pós-criação
 
 - Configure manualmente a regra de **dupla aprovação** para despesas acima de `{{ limite_aprovacao_simples }}` — o template não automatiza isso porque depende da estrutura de gestão da sua empresa.
 - Adicione os emails dos gestores como membros do pipe.

@@ -41,7 +41,7 @@ export function TemplateListPage() {
           <h1>Templates de processo</h1>
           <p className="lede">
             Visualize o que cada template inclui — fases, campos, automações, AI Agents e relações —
-            antes de clonar no Pipefy.
+            antes de criar no Pipefy.
           </p>
         </div>
 

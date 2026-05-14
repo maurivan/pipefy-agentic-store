@@ -8,7 +8,7 @@ descricao_curta: Processamento de Contas a Pagar com extração estruturada de N
 autor: pipefy-template-store
 tags: [ap, contas-a-pagar, nfe, doc-extraction, sefaz, ia, financeiro, brasil]
 icone: 🧾
-tempo_estimado_clonagem: "~70 segundos"
+tempo_estimado_criacao: "~70 segundos"
 fases_count: 5
 campos_count: 18
 requer_ai_agents: true
@@ -31,7 +31,7 @@ Pipeline de **Accounts Payable focado em fiscal brasileiro**: NF chega via inbox
 - Pagamento programado no banco/ERP sem dupla digitação.
 - Trilha de auditoria fiscal completa (CFOP, chave de acesso, status SEFAZ).
 
-## ⚙️ Variáveis de clonagem
+## ⚙️ Variáveis de criação
 
 ```yaml
 variaveis:
@@ -327,11 +327,11 @@ webhooks:
       X-Source: "pipefy-template-store"
 ```
 
-## 📌 Pós-clonagem
+## 📌 Pós-criação
 
 - Configure o **inbox-email** do pipe (Pipefy gera um endereço único). Configure forwarding na caixa de notas-fiscais do financeiro para esse endereço. Isso cria cards automaticamente quando NF chega.
 - Configure manualmente via UI um pequeno **delay de 30 segundos** entre criação do card e auto-move para Extração & Classificação — garantir que o upload do anexo finalize antes do agente rodar (alguns planos permitem delay; outros não).
-- Configure as URLs reais dos webhooks SEFAZ e banco/ERP durante a clonagem.
+- Configure as URLs reais dos webhooks SEFAZ e banco/ERP durante a criação.
 - Configure manualmente via UI a regra de **auto-aprovação** para `valor_total < {{ limite_auto_aprovacao }}` — quando status_sefaz = Autorizada, pular fase Aprovação. Isto exige condicional avançado disponível em UI.
 - Adicione aprovadores financeiros como membros do pipe.
 - Configure manualmente notificação por email ao aprovador quando o card cair em Aprovação (template não inclui email).

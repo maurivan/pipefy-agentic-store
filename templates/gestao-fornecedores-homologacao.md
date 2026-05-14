@@ -8,7 +8,7 @@ descricao_curta: Homologação de fornecedores em 6 fases (cadastro, documental,
 autor: maurivan
 tags: [compras, fornecedores, homologacao, procurement, compliance, ia]
 icone: 🏭
-tempo_estimado_clonagem: "~60 segundos"
+tempo_estimado_criacao: "~60 segundos"
 requer_ai_agents: true
 ---
 
@@ -30,7 +30,7 @@ Dois pontos de IA aceleram o trabalho:
 - Trilha de auditoria completa: cada fase guarda quem decidiu o quê e quando.
 - Após homologação, fornecedor fica claramente sinalizado e pronto para virar parceiro comercial.
 
-## ⚙️ Variáveis de clonagem
+## ⚙️ Variáveis de criação
 
 ```yaml
 variaveis:
@@ -279,9 +279,9 @@ ai_agents:
                 modo: fill_with_ai
 ```
 
-## 📌 Pós-clonagem
+## 📌 Pós-criação
 
-Depois de clonar o template na conta Pipefy:
+Depois de criar o template na conta Pipefy:
 
 1. **Confira o gestor responsável** — o email definido em `{{ gestor_compras_email }}` aparece como default no campo "Gestor responsável pela aprovação". Garanta que essa pessoa tem acesso ao pipe.
 2. **Calibre o score Serasa mínimo** — o valor padrão (500) é conservador. Times mais maduros costumam exigir 600+ ou ter régua por categoria. Ajuste no prompt do AI Agent se precisar.

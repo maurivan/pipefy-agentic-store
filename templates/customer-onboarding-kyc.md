@@ -8,7 +8,7 @@ schema_version: 1
 autor: pipefy-template-store
 tags: [customer-success, onboarding, kyc, doc-extraction, compliance, ia]
 icone: 🤝
-tempo_estimado_clonagem: "~75 segundos"
+tempo_estimado_criacao: "~75 segundos"
 fases_count: 5
 campos_count: 22
 requer_ai_agents: true
@@ -31,7 +31,7 @@ A IA carrega o coração do processo: ao receber os documentos, um agente especi
 - Análise de crédito opcional via sub-pipe (não polui o fluxo principal).
 - Tempo de onboarding cai de semanas para dias úteis.
 
-## ⚙️ Variáveis de clonagem
+## ⚙️ Variáveis de criação
 
 ```yaml
 variaveis:
@@ -397,10 +397,10 @@ webhooks:
       origem: "pipefy-onboarding-kyc"
 ```
 
-## 📌 Pós-clonagem
+## 📌 Pós-criação
 
 1. **Configurar notificações por email manualmente via UI** — o template não automatiza emails. Crie via Pipefy UI: alerta para `{{ cs_responsavel_email }}` quando card chega em "Validação" com `validacao-documentos = Pendência` ou `= Reprovado`, e notificação para o cliente (campo `email-cliente`) quando aprovado.
-2. **Apontar `pipe_analise_credito_id`** — caso use sub-pipe de crédito, informe o ID na clonagem. Se deixar em branco, a relação será criada como skeleton (resolva depois).
+2. **Apontar `pipe_analise_credito_id`** — caso use sub-pipe de crédito, informe o ID na criação. Se deixar em branco, a relação será criada como skeleton (resolva depois).
 3. **Configurar os webhooks** — sem URL e token de PEP/sanctions e CRM, as automações ficam dormentes. Configure as URLs reais antes de subir o primeiro card real.
 4. **Habilitar scheduler de refresh KYC** (Pipefy UI → Automations) para reabrir cards de clientes ativos a cada 12 meses (PF) ou 24 meses (PJ). Refresh evita base envelhecida em silêncio.
 5. **Validar com um card de teste por tipo** — submeta um PF e um PJ com documentos reais (anonimizados) e confira a saída JSON do agente. Refine o prompt se a extração estiver fraca para algum tipo de documento específico.

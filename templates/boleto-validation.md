@@ -8,7 +8,7 @@ schema_version: 1
 autor: pipefy-template-store
 tags: [financeiro, boleto, ap, doc-extraction, ia, banco]
 icone: 📥
-tempo_estimado_clonagem: "~60 segundos"
+tempo_estimado_criacao: "~60 segundos"
 fases_count: 4
 campos_count: 16
 requer_ai_agents: true
@@ -32,7 +32,7 @@ Esteira de processamento de boletos bancários brasileiros (linha digitável 47-
 - Agendamento direto via API do banco (sem retipagem no internet banking).
 - Visibilidade diária dos boletos vencendo em até 2 dias úteis.
 
-## ⚙️ Variáveis de clonagem
+## ⚙️ Variáveis de criação
 
 ```yaml
 variaveis:
@@ -332,7 +332,7 @@ webhooks:
       origem: "pipefy-boleto-validation"
 ```
 
-## 📌 Pós-clonagem
+## 📌 Pós-criação
 
 1. **Serviço de validação de boleto** — contrate Boleto Cloud, Cobranca API ou similar e configure a URL/token. Sem isso o card avança apenas com extração da IA, sem confirmação determinística da linha digitável.
 2. **Integração com o core bancário** — a maioria dos bancos PJ oferece API de cobrança/pagamento (Banco do Brasil API CMN, Itaú APIcatalog, Bradesco Open Finance). Configure a URL/token e teste o agendamento em sandbox antes de produção.

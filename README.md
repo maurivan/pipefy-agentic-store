@@ -1,6 +1,6 @@
 # Pipefy Agentic Store
 
-Loja pública de **templates de processo do Pipefy** que podem ser clonados em segundos no seu workspace via [Claude Code](https://claude.com/claude-code) + [MCP do Pipefy](https://github.com/gbrlcustodio/pipefy-mcp-server).
+Loja pública de **templates de processo do Pipefy** que podem ser criados em segundos no seu workspace via [Claude Code](https://claude.com/claude-code) + [MCP do Pipefy](https://github.com/gbrlcustodio/pipefy-mcp-server).
 
 Cada template descreve um pipe completo — labels, database tables, fases, campos, field conditions, automações, AI Agents, pipe relations e webhooks — em um único arquivo Markdown com YAML frontmatter. O Claude Code lê o template, pede as variáveis ao usuário e cria tudo no Pipefy via MCP.
 
@@ -23,13 +23,13 @@ Abra o endereço que o Vite exibir (geralmente `http://localhost:5173`). O build
 ├── interface/                           # Catálogo web (Vite + React + TS) — lista templates locais
 ├── INSTALL-SKILL.md                     # Instruções de instalação da skill agentic-store
 ├── INSTALL-MCP.md                       # Instruções de instalação do MCP do Pipefy
-├── templates/                           # Catálogo de templates clonáveis (.md)
+├── templates/                           # Catálogo de templates disponíveis (.md)
 │   ├── esteira-de-credito.md
 │   ├── gestao-fornecedores-homologacao.md
 │   ├── onboarding-clientes-b2b.md
 │   └── simples-aprovacao-despesas.md
 └── .claude/skills/
-    └── agentic-store/                   # Skill principal — lista e clona templates
+    └── agentic-store/                   # Skill principal — lista e cria templates
 ```
 
 ## Install
@@ -80,13 +80,13 @@ Numa sessão do Claude Code com as skills deste repo carregadas:
 
 Ponto. A skill cuida do resto:
 
-1. **Verifica se o MCP do Pipefy está instalado.** Se não estiver, baixa [`INSTALL-MCP.md`](./INSTALL-MCP.md) deste repo e segue as instruções (clona o servidor MCP, instala dependências com `uv`, pede Client ID/Secret, registra no Claude). Você reinicia o Claude Code e roda `/agentic-store` de novo.
+1. **Verifica se o MCP do Pipefy está instalado.** Se não estiver, baixa [`INSTALL-MCP.md`](./INSTALL-MCP.md) deste repo e segue as instruções (baixa o repositório do servidor MCP via `git clone`, instala dependências com `uv`, pede Client ID/Secret, registra no Claude). Você reinicia o Claude Code e roda `/agentic-store` de novo.
 2. **Lista os templates** desta loja direto do `main` no GitHub — você sempre vê a versão mais recente.
-3. **Pergunta qual clonar** via menu interativo.
+3. **Pergunta qual criar** via menu interativo.
 4. **Detecta os placeholders `{{ variavel }}`** do template e pede os valores numa única mensagem.
 5. **Mostra um plano em 5 linhas** e **espera sua aprovação** (`pode executar`).
 6. **Cria** na ordem certa: pipe → labels → database tables → fases → campos → field conditions → automações → AI agents → pipe relation → webhooks.
-7. **Devolve** `pipe_id`, URL do pipe, contagem do que foi criado e TODOs manuais pós-clone (ex: deletar as fases default `Inbox`/`Doing`/`Done` que o Pipefy cria automaticamente).
+7. **Devolve** `pipe_id`, URL do pipe, contagem do que foi criado e TODOs manuais pós-criação (ex: deletar as fases default `Inbox`/`Doing`/`Done` que o Pipefy cria automaticamente).
 
 Nada é executado no Pipefy antes da aprovação explícita.
 
@@ -105,7 +105,7 @@ categoria: customer-success
 versao: 1.1.0
 tags: [onboarding, b2b, customer-success]
 icone: 🤝
-tempo_estimado_clonagem: "~45 segundos"
+tempo_estimado_criacao: "~45 segundos"
 fases_count: 5
 campos_count: 16
 schema_version: 1
@@ -124,7 +124,7 @@ requer_ai_agents: true
 - pipe_relations: [...]
 ```
 
-O corpo do `.md` descreve a estrutura do pipe (fases, campos, AI Agents, relações). Use placeholders `{{ nome_variavel }}` para qualquer valor que o usuário deva preencher na clonagem.
+O corpo do `.md` descreve a estrutura do pipe (fases, campos, AI Agents, relações). Use placeholders `{{ nome_variavel }}` para qualquer valor que o usuário deva preencher na criação.
 
 ### Campos do frontmatter
 
@@ -146,7 +146,7 @@ O corpo do `.md` descreve a estrutura do pipe (fases, campos, AI Agents, relaç�
 
 1. Crie um arquivo em `templates/<slug>.md` seguindo o formato acima.
 2. Use placeholders `{{ variavel }}` para valores que o usuário deve preencher.
-3. Bump a `versao` (SemVer): patch para correções, minor para fases/campos novos, major se quebra clonagens existentes.
+3. Bump a `versao` (SemVer): patch para correções, minor para fases/campos novos, major se quebra criações existentes.
 4. Abra um PR. A skill `/agentic-store` puxa do `main`, então o template só fica "publicado" depois do merge — para testar antes, ajuste a URL da skill temporariamente para a sua branch.
 
 Leia também o [`AGENTS.md`](./AGENTS.md) para regras detalhadas (não introduzir dependências, não criar planos.md, não auto-commitar, etc.).

@@ -8,7 +8,7 @@ schema_version: 1
 autor: pipefy-template-store
 tags: [juridico, compliance, sanctions, pep, ofac, screening]
 icone: "🛡️"
-tempo_estimado_clonagem: "~40 segundos"
+tempo_estimado_criacao: "~40 segundos"
 fases_count: 4
 campos_count: 16
 requer_ai_agents: true
@@ -37,7 +37,7 @@ regulados, jurídico em onboarding de clientes/fornecedores expostos.
 - 4 estados (não só pass/fail) — triagem fina sem perder o sinal
 - Listas consultadas em paralelo (OFAC, BACEN/CSNU, interna)
 
-## ⚙️ Variáveis de clonagem
+## ⚙️ Variáveis de criação
 
 ```yaml
 variaveis:
@@ -299,9 +299,9 @@ webhooks:
       severity: "P0"
 ```
 
-## 📌 Pós-clonagem
+## 📌 Pós-criação
 
-- **Configure as três URLs de APIs externas** (OFAC, CSNU/BACEN, lista interna) substituindo as variáveis de webhook após a clonagem. Use um broker (Comply Advantage, Refinitiv, ChainAnalysis, ou interno) se ainda não tiver os endpoints diretos.
+- **Configure as três URLs de APIs externas** (OFAC, CSNU/BACEN, lista interna) substituindo as variáveis de webhook após a criação. Use um broker (Comply Advantage, Refinitiv, ChainAnalysis, ou interno) se ainda não tiver os endpoints diretos.
 - **Configure manualmente via UI** uma notificação ao compliance officer quando match definitivo for marcado (template não inclui email automatizado).
 - **Filtros do webhook de escalation** devem ser ajustados no editor do Pipefy para disparar apenas quando `match-definitivo = MATCH_DEFINITIVO`.
 - **Ajuste o threshold** da automação `revisao-obrigatoria` no Pipefy para `score > {{ score_alerta }}` — condições numéricas exigem ajuste no editor.

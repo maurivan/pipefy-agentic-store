@@ -22,7 +22,7 @@ export function Layout({ children }: Props) {
       <main className="main">{children}</main>
       <footer className="footer">
         <p>
-          Fonte: pasta <code>templates/</code> deste repositório. Para clonar no Pipefy, use a skill{" "}
+          Fonte: pasta <code>templates/</code> deste repositório. Para criar no Pipefy, use a skill{" "}
           <code>/agentic-store</code> no Claude Code.
         </p>
       </footer>

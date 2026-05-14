@@ -8,7 +8,7 @@ schema_version: 1
 autor: pipefy-template-store
 tags: [customer-success, suporte, triagem, ticket, ia, inbox]
 icone: 🎫
-tempo_estimado_clonagem: "~70 segundos"
+tempo_estimado_criacao: "~70 segundos"
 fases_count: 5
 campos_count: 18
 requer_ai_agents: true
@@ -31,7 +31,7 @@ A IA aqui é uma classificadora robusta: aplica taxonomia explícita de 5 catego
 - Lookup de segmento melhora classificação (Enterprise reportando "tudo parado" = P0).
 - Trilha auditável de cada decisão de triagem da IA.
 
-## ⚙️ Variáveis de clonagem
+## ⚙️ Variáveis de criação
 
 ```yaml
 variaveis:
@@ -386,7 +386,7 @@ webhooks:
       origem: "pipefy-ticket-triage"
 ```
 
-## 📌 Pós-clonagem
+## 📌 Pós-criação
 
 1. **Configurar a inbox de email do pipe** — esse template depende do recurso de "Email inbox do pipe" no Pipefy: cada email recebido vira card. Configure manualmente o endereço (ex: `tickets@suaempresa.pipefy.com`) na Pipefy UI → Pipe Settings → Email.
 2. **Configurar notificações por email manualmente via UI** — o template não automatiza emails de saída. Crie via Pipefy UI: notificação para `{{ oncall_email }}` quando SLA P0 ou P1 estoura, e auto-resposta para o cliente (campo `email-cliente`) confirmando recebimento do ticket.

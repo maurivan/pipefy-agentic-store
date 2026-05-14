@@ -8,7 +8,7 @@ schema_version: 1
 autor: pipefy-template-store
 tags: [rh, ferias, licenca, saldo, calendario, ia]
 icone: 🏖️
-tempo_estimado_clonagem: "~30 segundos"
+tempo_estimado_criacao: "~30 segundos"
 fases_count: 4
 campos_count: 17
 requer_ai_agents: true
@@ -32,7 +32,7 @@ Processo enxuto de solicitação de férias, licenças médicas, pessoais e mate
 - Trilha auditável de quem aprovou cada licença, com motivo e prazo.
 - Integração com ERP/folha para lançamento automático após aprovação.
 
-## ⚙️ Variáveis de clonagem
+## ⚙️ Variáveis de criação
 
 ```yaml
 variaveis:
@@ -289,7 +289,7 @@ webhooks:
       origem: "pipefy-leave-request"
 ```
 
-## 📌 Pós-clonagem
+## 📌 Pós-criação
 
 1. **Popular DB `saldo_ferias`** — sem ela, o behavior do agente não tem como puxar o saldo. Carregue via importação do ERP/folha (CSV ou API).
 2. **Configurar lookup de saldo** — adicione uma automação nativa do Pipefy (UI) que, ao criar o card, busque o `saldo-dias` da DB com base no `funcionario-id` e preencha o campo `saldo-atual`.

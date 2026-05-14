@@ -8,7 +8,7 @@ descricao_curta: Conferência 3-way de Notas Fiscais contra Pedido de Compra (PO
 autor: pipefy-template-store
 tags: [ap, p2p, doc-extraction, compliance, 3-way-match, ia, financeiro]
 icone: 📑
-tempo_estimado_clonagem: "~70 segundos"
+tempo_estimado_criacao: "~70 segundos"
 fases_count: 5
 campos_count: 17
 requer_ai_agents: true
@@ -31,7 +31,7 @@ Pipeline de **Accounts Payable com conferência 3-way match**: NF chega, extrato
 - Trilha de auditoria 3-way completa por NF.
 - Tolerância de valor explícita (±2%) evitando falso positivo.
 
-## ⚙️ Variáveis de clonagem
+## ⚙️ Variáveis de criação
 
 ```yaml
 variaveis:
@@ -324,7 +324,7 @@ webhooks:
       X-Source: "pipefy-template-store"
 ```
 
-## 📌 Pós-clonagem
+## 📌 Pós-criação
 
 - Forneça em `pipe_compras_id` o ID do pipe de Compras (idealmente o pipe criado pelo template `purchase-request-approval` — o `connector` `po_referencia` aponta para ele via pipe-relation).
 - Configure a URL real do webhook do ERP para programar pagamento.

@@ -8,7 +8,7 @@ schema_version: 1
 autor: pipefy-template-store
 tags: [rh, performance, avaliacao, feedback, ia]
 icone: 📊
-tempo_estimado_clonagem: "~35 segundos"
+tempo_estimado_criacao: "~35 segundos"
 fases_count: 4
 campos_count: 13
 requer_ai_agents: true
@@ -30,7 +30,7 @@ A IA aparece de forma minimalista: ao concluir os campos qualitativos, um sumari
 - Diff automatizado entre score auto e score gestor sinaliza casos para calibração obrigatória.
 - Trilha de auditoria por ciclo para diretoria de RH e business partner.
 
-## ⚙️ Variáveis de clonagem
+## ⚙️ Variáveis de criação
 
 ```yaml
 variaveis:
@@ -209,7 +209,7 @@ ai_agents:
                 modo: fill_with_ai
 ```
 
-## 📌 Pós-clonagem
+## 📌 Pós-criação
 
 1. **Bulk-create de cards no início do ciclo** — use a Pipefy API ou import via planilha para gerar um card por funcionário ativo. O template não automatiza essa criação porque depende da fonte de verdade de headcount da sua empresa.
 2. **Configurar notificações por email manualmente via UI** — alerta para o gestor (campo `gestor`) quando o card chega na fase "Avaliação do Gestor" e para o funcionário (campo `funcionario`) quando entra em "Devolutiva". Inclua também notificação para `{{ rh_business_partner_email }}` em SLA estourado.

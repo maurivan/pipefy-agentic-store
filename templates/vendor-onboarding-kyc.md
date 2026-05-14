@@ -8,7 +8,7 @@ descricao_curta: KYC de fornecedor com extração estruturada do Cartão CNPJ, v
 autor: pipefy-template-store
 tags: [kyc, fornecedores, compliance, doc-extraction, ia, onboarding]
 icone: 🏭
-tempo_estimado_clonagem: "~80 segundos"
+tempo_estimado_criacao: "~80 segundos"
 fases_count: 5
 campos_count: 22
 requer_ai_agents: true
@@ -31,7 +31,7 @@ Pipeline de **Know-Your-Customer para fornecedores**: cadastro inicial, validaç
 - Refresh KYC automático evitando fornecedores stale.
 - Trilha de auditoria completa: documento, pendências, decisão, aprovador.
 
-## ⚙️ Variáveis de clonagem
+## ⚙️ Variáveis de criação
 
 ```yaml
 variaveis:
@@ -339,9 +339,9 @@ webhooks:
       X-Source: "pipefy-template-store"
 ```
 
-## 📌 Pós-clonagem
+## 📌 Pós-criação
 
-- Configure as URLs reais dos webhooks PEP/Sanções e ERP durante a clonagem.
+- Configure as URLs reais dos webhooks PEP/Sanções e ERP durante a criação.
 - Configure a regra de validação básica de CNPJ via regex (14 dígitos) como **automação manual via UI** se o seu plano permitir validação por regex em campo.
 - Configure manualmente via UI um **scheduler mensal** que cria card de refresh quando `data_validade_kyc - hoje < 30 dias`. O template não inclui scheduler nativo.
 - Configure manualmente notificação por email para o fornecedor quando houver pendência (não incluída neste template).

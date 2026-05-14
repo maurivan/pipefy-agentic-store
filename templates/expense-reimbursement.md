@@ -8,7 +8,7 @@ schema_version: 1
 autor: pipefy-template-store
 tags: [financeiro, reembolso, despesas, ocr, ia, ap, doc-extraction]
 icone: 💳
-tempo_estimado_clonagem: "~60 segundos"
+tempo_estimado_criacao: "~60 segundos"
 fases_count: 4
 campos_count: 17
 requer_ai_agents: true
@@ -32,7 +32,7 @@ Esteira de reembolso de despesas corporativas (viagem, alimentação, material, 
 - Centro de custo populado automaticamente via DB Funcionários — fim de erro de classificação.
 - Trilha auditável de comprovantes anexados, extração realizada e decisão de cada aprovador.
 
-## ⚙️ Variáveis de clonagem
+## ⚙️ Variáveis de criação
 
 ```yaml
 variaveis:
@@ -294,7 +294,7 @@ database_tables:
         tipo: email
 ```
 
-## 📌 Pós-clonagem
+## 📌 Pós-criação
 
 1. **Popular DB `funcionarios`** — sem ela, o auto-preenchimento de centro de custo e gestor não funciona. Importe via CSV ou conecte ao seu HRIS.
 2. **Configurar lookup no Pipefy (UI)** — ao criar o card, faça uma automação nativa que popula `centro-custo` e `gestor` a partir do `funcionario` selecionado.
