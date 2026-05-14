@@ -2,17 +2,17 @@
 id: esteira-de-credito
 nome: Esteira de Crédito PJ
 categoria: financeiro
-versao: 1.2.0
+versao: 1.3.0
 schema_version: 1
-descricao_curta: Esteira completa de crédito PJ (50k–5M) em 6 fases — originação, KYC, análise, comitê, formalização, desembolso. IA extrai documentos, classifica rating setorial e resume operações para o comitê. Inclui auto-move pós-análise, enriquecimento via ReceitaWS e webhook para core bancário.
+descricao_curta: Esteira completa de crédito PJ (50k–5M) em 6 fases com 4 AI Agents especializados (analista de crédito, auditor antifraude, especialista em garantias, assistente de renovação), 2 database tables, automação de handoff e webhook para core bancário.
 autor: maurivan
-tags: [credito, financeiro, pj, fintech, banco, kyc, comite-credito, ia]
+tags: [credito, financeiro, pj, fintech, banco, kyc, comite-credito, ia, antifraude, renovacao]
 icone: 💳
-tempo_estimado_criacao: "~90 segundos"
+tempo_estimado_criacao: "~120 segundos"
 requer_ai_agents: true
 requer_database_tables: true
 fases_count: 6
-campos_count: 33
+campos_count: 45
 ---
 
 # Esteira de Crédito PJ
@@ -155,6 +155,9 @@ pipe:
           label: "Documentos (contrato social, balanço, faturamento, CNDs, sócios)"
           tipo: attachment
           obrigatorio: true
+        - id: socios
+          label: "Sócios identificados (extraído do contrato social)"
+          tipo: long_text
         - id: kyc-status
           label: "Status do KYC"
           tipo: select
@@ -164,6 +167,9 @@ pipe:
           tipo: long_text
         - id: compliance-flag
           label: "Flag de compliance (PEP, sanções, restrições)?"
+          tipo: yes_no
+        - id: flag-fraude-detectada
+          label: "Flag de fraude detectada?"
           tipo: yes_no
 
     - id: analise-credito
@@ -198,6 +204,31 @@ pipe:
         - id: parecer-credito
           label: "Parecer de crédito (analista)"
           tipo: long_text
+        - id: cobertura-efetiva-pct
+          label: "Cobertura efetiva da garantia (%)"
+          tipo: number
+        - id: parecer-garantia
+          label: "Parecer da garantia (haircut aplicado)"
+          tipo: long_text
+        - id: sugestao-reforco-garantia
+          label: "Sugestão de reforço de garantia"
+          tipo: long_text
+        - id: historico-cliente-resumo
+          label: "Histórico do cliente (renovação)"
+          tipo: long_text
+        - id: tipo-renovacao
+          label: "Tipo de renovação"
+          tipo: select
+          opcoes: [Express, "Padrão", "Sensível"]
+        - id: justificativa-tipo-renovacao
+          label: "Justificativa da classificação de renovação"
+          tipo: long_text
+        - id: taxa-sugerida-renovacao
+          label: "Taxa de juros sugerida (renovação, % mensal)"
+          tipo: number
+        - id: prazo-sugerido-renovacao
+          label: "Prazo sugerido (renovação, meses)"
+          tipo: number
 
     - id: comite
       nome: "Comitê de Crédito"
@@ -240,6 +271,12 @@ pipe:
         - id: garantia-formalizada
           label: "Garantia formalizada?"
           tipo: yes_no
+        - id: garantia-formalizada-ok
+          label: "Validação IA: garantia formalizada corretamente?"
+          tipo: yes_no
+        - id: pendencias-formalizacao
+          label: "Pendências de formalização"
+          tipo: long_text
         - id: data-formalizacao
           label: "Data da formalização"
           tipo: date
@@ -408,12 +445,50 @@ ai_agents:
   - id: assistente-credito
     nome: "Assistente de Crédito"
     instruction: |
-      Você é um analista júnior de crédito PJ que apoia o time em três tarefas
-      específicas: triagem documental no KYC, classificação de rating de risco
-      após o score do bureau, e preparação do resumo executivo para o comitê.
-      Seja factual, conservador na atribuição de rating e nunca tome a decisão
-      final — apenas forneça insumos. Cite explicitamente os campos do card
-      que você usou para fundamentar cada saída.
+      Você é um analista de crédito PJ sênior, especializado em operações de R$ 50k
+      a R$ 5M para empresas brasileiras. Apoia o time humano em três etapas críticas
+      do fluxo: triagem documental no KYC, classificação de rating após score do
+      bureau, e preparação do resumo executivo na entrada do comitê. Nunca toma
+      decisão final — apenas fornece insumos qualificados.
+
+      # Diretrizes de comportamento
+
+      1. **Conservadorismo na avaliação** — em dúvida, sinalize risco mais alto.
+         Falso positivo (analista revisar manualmente) é preferível a falso negativo
+         (aprovar caso ruim). Aplique a régua de rating com rigor: score
+         < {{ score_minimo }} → rating D/E sem exceção.
+
+      2. **Citação obrigatória de evidências** — toda saída deve referenciar os
+         campos do card que fundamentaram a conclusão. Formato esperado:
+         "Baseado em score=720, faturamento=R$ 18M, endividamento=R$ 4,5M
+         (25% do faturamento) → rating B."
+
+      3. **Não inventar dados** — se um campo essencial estiver vazio ou ambíguo,
+         declare a limitação explicitamente ao invés de inferir. Exemplo:
+         "Campo `endividamento-atual` vazio — análise feita sem este componente.
+         Marcar para revisão manual antes do comitê."
+
+      4. **Português brasileiro, tom técnico-objetivo** — frases curtas, bullet
+         points quando listar, sem floreios. Vocabulário do setor financeiro
+         (haircut, rating, alçada, SCR, exposição) sem explicar termos óbvios.
+
+      5. **Limite de escopo claro** — você fornece insumos para decisão humana.
+         Nunca preencha `decisao-comite`, `limite-aprovado` nem `taxa-juros-mensal` —
+         exclusivos do comitê humano. Nunca preencha campos de formalização
+         (contrato, garantia formalizada, data) — exclusivos do operador.
+
+      6. **Compliance e ética** — não infira gênero, religião, orientação política
+         ou características protegidas. Atenha-se a dados financeiros e operacionais.
+         Em CPFs de sócios, use formato mascarado: `123.***.***-89`.
+
+      7. **Refresh do KYC** — se a data de cadastro do cliente for > 12 meses ou
+         houver mudança societária recente, sinalize necessidade de refresh KYC
+         no campo `pendencias-kyc`.
+
+      # Contexto regulatório
+      Opere assumindo Bacen Res. 4.557 (gestão de risco), LGPD (retenção de dados
+      pessoais) e CMN 96/21 (due diligence). Em operações > R$ 1M, mencione no
+      resumo executivo a obrigação de reporte ao SCR.
 
     behaviors:
       - nome: "Triagem documental no KYC"
@@ -493,6 +568,278 @@ ai_agents:
             campos:
               - id: resumo-comite
                 modo: fill_with_ai
+
+  - id: auditor-compliance-antifraude
+    nome: "Auditor de Compliance e Antifraude"
+    instruction: |
+      Você é um auditor sênior de compliance e antifraude em operações de crédito PJ.
+      Sua missão: detectar inconsistências documentais, padrões suspeitos e potenciais
+      fraudes ANTES da decisão do comitê. Você é conservador — na dúvida, sinaliza
+      sempre. Cite a evidência concreta de cada flag levantada. Nunca toma decisão
+      final; apenas levanta sinais para o analista humano avaliar.
+
+    behaviors:
+      - nome: "Cross-check documental no KYC"
+        trigger: card_moved
+        evento_params:
+          em_fase: kyc-documentacao
+        prompt: |
+          Compare os documentos anexados com os dados informados no formulário:
+          - CNPJ informado vs CNPJ no contrato social
+          - Razão social informada vs razão social no contrato
+          - Lista de sócios declarada vs sócios no contrato social
+          - Datas: contrato social vs CNDs vs data de fundação declarada
+
+          Para cada inconsistência, registre em `pendencias-kyc` (append).
+          Se >= 3 inconsistências OU divergência crítica (CNPJ/razão social),
+          marque `flag-compliance` como Sim. Extraia a lista de sócios para
+          o campo `socios` em formato bullet (Nome, CPF mascarado, % de
+          participação se disponível).
+
+        acoes:
+          - tipo: update_card
+            campos:
+              - id: socios
+                modo: fill_with_ai
+              - id: pendencias-kyc
+                modo: fill_with_ai
+              - id: compliance-flag
+                modo: fill_with_ai
+
+      - nome: "Detecção de padrão suspeito de fraude"
+        trigger: field_updated
+        evento_params:
+          campo: cnpj
+        prompt: |
+          Análise rápida de risco de fraude no CNPJ recém-informado:
+          - CNPJ ativo há quanto tempo? (empresas com <12 meses são mais arriscadas)
+          - Valor solicitado vs faturamento informado (proporção > 80% é suspeita)
+          - Padrão de valor "redondo" (R$ 500.000, R$ 1.000.000) com prazo
+            padrão = possível operação fictícia
+          - Email do contato com domínio público (gmail, hotmail) em operação
+            > R$ 500k é suspeito (fintechs sérias usam corporativo)
+
+          Se identificar 2+ sinais, marque `flag-fraude-detectada` como Sim e
+          detalhe o motivo em `pendencias-kyc` (append).
+
+        acoes:
+          - tipo: update_card
+            campos:
+              - id: flag-fraude-detectada
+                modo: fill_with_ai
+
+      - nome: "Screening PEP e sanções dos sócios"
+        trigger: field_updated
+        evento_params:
+          campo: socios
+        prompt: |
+          Quando o campo `socios` for preenchido (pelo behavior anterior),
+          faça screening conceitual contra:
+          - Lista PEP (Politicamente Expostos) — pessoas com cargo público
+            nos últimos 5 anos.
+          - Listas de sanções OFAC / CSNU / Banco Central.
+          - Notícias adversas públicas relevantes.
+
+          Se algum match razoável → `flag-compliance` = Sim. Detalhe a
+          evidência em `pendencias-kyc` (append): "Sócio X — possível PEP
+          (cargo Y em Z). Confirmar com analista humano antes de avançar."
+
+        acoes:
+          - tipo: update_card
+            campos:
+              - id: compliance-flag
+                modo: fill_with_ai
+
+  - id: especialista-garantias
+    nome: "Especialista em Garantias"
+    instruction: |
+      Você é um especialista em estruturação e validação de garantias para
+      crédito PJ. Aplica haircuts conservadores por tipo, calcula cobertura
+      efetiva e sugere reforço quando insuficiente. Conhece a liquidez de
+      cada tipo de ativo em cenário de execução judicial. Nunca aprova nem
+      rejeita — apenas dimensiona o risco residual após a garantia.
+
+    behaviors:
+      - nome: "Cálculo de cobertura efetiva da garantia"
+        trigger: field_updated
+        evento_params:
+          campo: valor-garantia
+        prompt: |
+          Calcule a cobertura efetiva aplicando haircut por tipo (campo
+          `tipo-garantia-exigida`):
+          - "Sem garantia" → cobertura 0% (operação clean)
+          - "Aval" → haircut 50% (vale 50% do declarado)
+          - "Fiança" → haircut 40%
+          - "Recebíveis" → haircut 20% + considere concentração de sacados
+          - "Alienação fiduciária" → haircut 30% (veículo) ou 30% (máquinas)
+          - "Hipoteca" → haircut 30% + verificar registro em cartório
+
+          Cálculo:
+              cobertura-efetiva-pct = (valor-garantia × (1 - haircut))
+                                        ÷ valor-solicitado × 100
+
+          Preencha `cobertura-efetiva-pct` (number) e `parecer-garantia`
+          (long_text) descrevendo:
+          - haircut aplicado e por quê
+          - cobertura efetiva resultante
+          - adequação: >= 100% (bom), 80-100% (suficiente), < 80% (insuficiente)
+
+        acoes:
+          - tipo: update_card
+            campos:
+              - id: cobertura-efetiva-pct
+                modo: fill_with_ai
+              - id: parecer-garantia
+                modo: fill_with_ai
+
+      - nome: "Sugestão de reforço quando garantia insuficiente"
+        trigger: field_updated
+        evento_params:
+          campo: cobertura-efetiva-pct
+        prompt: |
+          Se `cobertura-efetiva-pct < 100`, sugira reforços compatíveis com
+          a atividade do cliente (CNAE):
+          - Aval adicional dos sócios (sempre disponível)
+          - Recebíveis adicionais (se a atividade gera duplicatas — comércio,
+            serviços)
+          - Cessão fiduciária de aplicação financeira (CDB, fundo)
+          - Vinculação de conta-corrente movimento
+          - Caução em conta-aplicação no próprio banco
+
+          Preencha `sugestao-reforco-garantia` (long_text) com a alternativa
+          mais natural para o setor do cliente. Se cobertura >= 100%, deixe
+          o campo vazio.
+
+        acoes:
+          - tipo: update_card
+            campos:
+              - id: sugestao-reforco-garantia
+                modo: fill_with_ai
+
+      - nome: "Validação pós-formalização"
+        trigger: card_moved
+        evento_params:
+          em_fase: formalizacao
+        prompt: |
+          Card entrou em Formalização. Confira no campo `contrato-assinado`
+          se a garantia tipo `tipo-garantia-exigida` foi efetivamente
+          formalizada com a documentação correta:
+          - Alienação fiduciária → contrato registrado + CRLV/NF do bem
+          - Hipoteca → matrícula + registro no cartório de imóveis
+          - Aval → assinatura + reconhecimento de firma dos avalistas
+          - Fiança → contrato com firma reconhecida
+          - Recebíveis → contrato de cessão fiduciária + lista de duplicatas
+
+          Marque `garantia-formalizada-ok` (yes_no) e detalhe em
+          `pendencias-formalizacao` (long_text) o que falta, se houver.
+
+        acoes:
+          - tipo: update_card
+            campos:
+              - id: garantia-formalizada-ok
+                modo: fill_with_ai
+              - id: pendencias-formalizacao
+                modo: fill_with_ai
+
+  - id: assistente-renovacao
+    nome: "Assistente de Renovação"
+    instruction: |
+      Você é responsável por acelerar e qualificar operações de renovação de
+      crédito PJ. Cliente recorrente merece tratamento diferenciado: análise
+      mais leve para bons pagadores, mais rigorosa para os problemáticos.
+      Cruza histórico transacional do cliente (via table `clientes_ativos`)
+      com a proposta nova para gerar pre-recomendação ao comitê. Nunca pula
+      etapas críticas — KYC refresh sempre obrigatório em renovações.
+
+    behaviors:
+      - nome: "Detecção de renovação e busca de histórico"
+        trigger: field_updated
+        evento_params:
+          campo: origem-lead
+        prompt: |
+          Se o valor de `origem-lead` for "Renovação", consulte a table
+          `clientes_ativos` pelo CNPJ informado para extrair:
+          - Limite total contratado historicamente (`limite_total`)
+          - Saldo devedor atual (`saldo_devedor`)
+          - Rating mais recente (`rating_atual`)
+          - Default count (operações em inadimplência — `default_count`)
+          - Data da última renovação (`data_ultima_renovacao`)
+          - Margem de uso do limite: `saldo_devedor / limite_total × 100`
+
+          Preencha `historico-cliente-resumo` (long_text) com esses dados em
+          formato bullet, citando "extraído da table clientes_ativos".
+
+          Se o cliente não estiver na table → marque como "Renovação sem
+          histórico — tratar como cliente novo" e oriente revisão manual.
+
+        acoes:
+          - tipo: update_card
+            campos:
+              - id: historico-cliente-resumo
+                modo: fill_with_ai
+
+      - nome: "Pre-classificação de renovação"
+        trigger: card_moved
+        evento_params:
+          em_fase: analise-credito
+        prompt: |
+          Se `origem-lead = Renovação` E `historico-cliente-resumo` preenchido,
+          pré-classifique em uma das três categorias:
+
+          - **Express** (auto-aprovação dentro da alçada simples):
+            * default_count = 0
+            * rating_atual <= B
+            * margem de uso do limite < 80%
+            * valor solicitado <= 110% do limite anterior
+
+          - **Padrão** (análise rápida): cliente OK mas algum critério Express
+            não casou.
+
+          - **Sensível** (análise plena obrigatória): cliente teve default,
+            rating piorou, valor solicitado >> limite anterior, OU > 1 ano
+            sem operação (data_ultima_renovacao).
+
+          Preencha:
+          - `tipo-renovacao` (select: Express / Padrão / Sensível)
+          - `justificativa-tipo-renovacao` (long_text) — fundamente a categoria
+            citando dados de `historico-cliente-resumo`.
+
+        acoes:
+          - tipo: update_card
+            campos:
+              - id: tipo-renovacao
+                modo: fill_with_ai
+              - id: justificativa-tipo-renovacao
+                modo: fill_with_ai
+
+      - nome: "Sugestão de termos baseada em histórico"
+        trigger: field_updated
+        evento_params:
+          campo: tipo-renovacao
+        prompt: |
+          Com base em `tipo-renovacao` e `historico-cliente-resumo`, sugira
+          termos competitivos:
+
+          - **Express** → desconto de 15-20% na taxa anterior (premia o bom cliente)
+          - **Padrão** → mesma taxa anterior (mantém condições)
+          - **Sensível** → spread +30-50% sobre taxa anterior (precifica risco)
+
+          Para o prazo: respeite o solicitado, mas se a margem de uso anterior
+          foi < 50%, sugira prazo menor para rotacionar o crédito.
+
+          Preencha:
+          - `taxa-sugerida-renovacao` (number, % mensal — ex: 1.42)
+          - `prazo-sugerido-renovacao` (number, meses — ex: 24)
+
+          Lembre-se: o comitê ainda decide. Você apenas sugere baseado no histórico.
+
+        acoes:
+          - tipo: update_card
+            campos:
+              - id: taxa-sugerida-renovacao
+                modo: fill_with_ai
+              - id: prazo-sugerido-renovacao
+                modo: fill_with_ai
 ```
 
 ## 🗄️ Database Tables
@@ -520,6 +867,41 @@ database_tables:
       - id: observacoes
         label: "Observações"
         tipo: long_text
+
+  - id: clientes_ativos
+    nome: "Clientes Ativos"
+    descricao: "Carteira ativa de clientes — alimenta o Assistente de Renovação com histórico transacional para pré-classificação Express/Padrão/Sensível."
+    colunas:
+      - id: cnpj
+        label: "CNPJ"
+        tipo: cnpj
+        obrigatorio: true
+        unico: true
+      - id: razao_social
+        label: "Razão social"
+        tipo: short_text
+        obrigatorio: true
+      - id: limite_total
+        label: "Limite total contratado (BRL)"
+        tipo: currency
+        obrigatorio: true
+      - id: saldo_devedor
+        label: "Saldo devedor atual (BRL)"
+        tipo: currency
+        obrigatorio: true
+      - id: rating_atual
+        label: "Rating atual"
+        tipo: select
+        opcoes: [A, B, C, D, E]
+        obrigatorio: true
+      - id: default_count
+        label: "Operações em default (contagem)"
+        tipo: number
+        obrigatorio: true
+      - id: data_ultima_renovacao
+        label: "Data da última renovação"
+        tipo: date
+        obrigatorio: true
 ```
 
 ## 📧 Email Templates
@@ -632,7 +1014,9 @@ webhooks:
 
 ## 📌 Pós-criação
 
-1. **Popular a table `setores_risco`** — sem ela, o behavior "Classificação de rating" do AI Agent não tem como puxar rating setorial. Cadastre pelo menos as 10-20 categorias CNAE mais relevantes do seu portfólio.
+1. **Popular as 2 database tables** (sem elas, AI Agents operam degradados):
+   - `setores_risco` — cadastre 10-20 CNAEs principais do seu portfólio com rating setorial (A-E). Alimenta o behavior "Classificação de rating" do Assistente de Crédito.
+   - `clientes_ativos` — popule com a carteira atual (CNPJ, limite, saldo devedor, rating, default_count, última renovação). Alimenta o Assistente de Renovação na pre-classificação Express/Padrão/Sensível.
 2. **Criar os 5 email templates via UI** (a API GraphQL do Pipefy não expõe `createEmailTemplate`) e em seguida criar as 5 automações tipo email no editor de automações:
    - `kyc-pendencias` · `aprovacao-aprovada` · `aprovacao-rejeitada` · `desembolso-realizado` · `alerta-sla-comite`
    - O conteúdo (assunto + corpo) está documentado em `## 📧 Email Templates` deste arquivo — copie de lá.
