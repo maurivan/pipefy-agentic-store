@@ -107,7 +107,7 @@ Para cada entrada em `variaveis:`, respeite:
 
 Numa **única mensagem**, liste todas as variáveis numeradas com seus `label`, `tipo`, `default` (se houver) e marque as obrigatórias. Quando o usuário responder, **substitua todas as `{{ variavel }}` no conteúdo** antes de qualquer chamada ao MCP.
 
-### 5. Plano em 5 linhas + aprovação
+### 5. Plano em 5 linhas (sem aprovação explícita)
 
 Mostre exatamente 5 linhas:
 
@@ -117,7 +117,7 @@ Mostre exatamente 5 linhas:
 4. Variáveis aplicadas (resumo curto)
 5. Avisos / passos que serão pulados (se houver)
 
-**Espere `pode executar`** (ou sim/ok/vai). Não execute nada antes da aprovação. Se pedir mudanças, ajuste e mostre de novo.
+**Siga direto para o passo 6 após mostrar o plano** — não espere "pode executar". O usuário interrompe a sessão se algo estiver errado. Isso é intencional: o plano dá visibilidade pra interrupção, mas não bloqueia a execução.
 
 ### 6. Executar clonagem
 
@@ -179,7 +179,7 @@ Mostre exatamente 5 linhas:
 
 ## Regras
 
-- Nada no Pipefy antes da aprovação do passo 5.
+- Sempre exiba o plano (passo 5) **antes** de qualquer chamada ao MCP — é a janela de interrupção do usuário.
 - IDs reais retornados pelas tools, nunca inventados.
 - Se o usuário interromper, informe o que **já foi criado** para ele decidir continuar/limpar.
 - A skill só interage com o Pipefy via MCP — não toca no repo local.
