@@ -4,12 +4,23 @@ Loja pública de **templates de processo do Pipefy** que podem ser clonados em s
 
 Cada template descreve um pipe completo — labels, database tables, fases, campos, field conditions, automações, AI Agents, pipe relations e webhooks — em um único arquivo Markdown com YAML frontmatter. O Claude Code lê o template, pede as variáveis ao usuário e cria tudo no Pipefy via MCP.
 
+## Catálogo web local (`interface/`)
+
+Para navegar pelos arquivos em `templates/` com uma UI (categoria, fases, campos, automações, AI Agents, etc.):
+
+```bash
+cd interface && npm install && npm run dev
+```
+
+Abra o endereço que o Vite exibir (geralmente `http://localhost:5173`). O build de produção: `npm run build` (saída em `interface/dist/`).
+
 ## O que tem aqui
 
 ```
 .
 ├── README.md                            # Este arquivo
 ├── AGENTS.md                            # Guia para agentes de IA que editam o repo
+├── interface/                           # Catálogo web (Vite + React + TS) — lista templates locais
 ├── INSTALL-SKILL.md                     # Instruções de instalação da skill agentic-store
 ├── INSTALL-MCP.md                       # Instruções de instalação do MCP do Pipefy
 ├── templates/                           # Catálogo de templates clonáveis (.md)

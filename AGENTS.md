@@ -4,12 +4,14 @@ Guia para agentes de IA (Claude Code, etc.) que vão modificar este repositório
 
 ## O que este repo é
 
-Um catálogo público de **templates de processo do Pipefy** clonáveis via Claude Code + MCP do Pipefy. O repo não é uma aplicação executável — não tem build, deploy, dev server ou test suite. É composto de duas coisas:
+Um catálogo público de **templates de processo do Pipefy** clonáveis via Claude Code + MCP do Pipefy. O foco do repositório é Markdown + skills; não há pipeline de deploy nem test suite global. É composto principalmente de:
 
 1. **Templates** em `templates/*.md` — arquivos Markdown com YAML frontmatter descrevendo pipes (fases, campos, AI Agents, relações).
 2. **Skills** do Claude Code em `.claude/skills/` — descritas em `SKILL.md` com frontmatter `name` + `description`.
 
-Não introduza framework, package manager, CI, lint, ou test runner sem alinhamento explícito com o mantenedor — o repo é deliberadamente leve.
+Opcionalmente, **`interface/`** — app Vite + React + TypeScript que lê os `.md` locais e exibe um catálogo navegável (somente essa pasta usa `npm`).
+
+Não introduza framework, package manager, CI, lint, ou test runner **na raiz do repo** sem alinhamento explícito com o mantenedor — o núcleo continua deliberadamente leve.
 
 ## Estrutura
 
@@ -17,6 +19,7 @@ Não introduza framework, package manager, CI, lint, ou test runner sem alinhame
 .
 ├── README.md                            # Documentação para usuários humanos
 ├── AGENTS.md                            # Este arquivo
+├── interface/                           # (opcional) Catálogo web local — Vite + React + TS
 ├── templates/                           # Catálogo público de templates
 │   └── <slug>.md
 └── .claude/skills/
