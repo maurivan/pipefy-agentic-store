@@ -113,7 +113,7 @@ Mostre exatamente 5 linhas:
 
 1. `Vou criar "<nome>" (<fases_count> fases, <campos_count> campos)`
 2. Total estimado de tool calls (some labels + tables + condições + automações + webhooks se as seções existirem)
-3. Ordem: pipe → labels → database_tables → fases → campos → field_conditions → automações → AI agents → pipe_relation → webhooks (se aplicáveis)
+3. Ordem: pipe → labels → database_tables → fases (ordem 1 = start form) → campos → field_conditions → automações → AI agents → pipe_relation → webhooks → **pergunta sobre seed de cards exemplo**
 4. Variáveis aplicadas (resumo curto)
 5. Avisos / passos que serão pulados (se houver)
 
@@ -131,10 +131,10 @@ Mostre exatamente 5 linhas:
    - Para cada `coluna`: `create_table_field(table_id, label, field_type, options, required, unique)`.
    - Crie **todas as colunas** antes de avançar.
    - Mapa: `table_id` por id lógico; `table_field_id` por `(table_id, coluna_logical_id)` — usado quando campos `connector` do pipe apontam pra ela.
-4. **Criar fases** na ordem definida pelo campo `ordem`. Guarde cada `phase_id` (`custom_phase_ids` = set dos IDs criados aqui).
-4b. **Deletar fases default do Pipefy.** Imediatamente após criar todas as fases custom:
+4. **Criar fases** na ordem definida pelo campo `ordem`. **A primeira fase (`ordem: 1`) NÃO é criada via `create_phase`** — ela mapeia para o `startFormPhaseId` do pipe (auto-criado por `create_pipe`). Guarde `phase_map[ordem_1_logical_id] = startFormPhaseId`. Para `ordem: 2..N`, use `create_phase` normalmente. Mantenha `custom_phase_ids` = set dos IDs criados via `create_phase` (sem incluir startFormPhaseId).
+4b. **Deletar fases default do Pipefy.** Imediatamente após criar todas as fases custom (`ordem: 2..N`):
    - `get_pipe(pipe_id)` → liste todas as fases.
-   - Para cada fase cujo `id` **NÃO está em `custom_phase_ids`**: `delete_phase(phase_id=X, pipe_id=Y, confirm=True)`.
+   - Para cada fase cujo `id` **NÃO está em `custom_phase_ids`** E **não é o startFormPhaseId**: `delete_phase(phase_id=X, pipe_id=Y, confirm=True)`.
    - Não filtre por nome (Pipefy pode localizar `Inbox`/`Doing`/`Done` para PT-BR — a comparação de IDs é à prova de locale).
    - Se algum delete falhar (cards já presentes, restrição de plano, etc.), **continue** e registre como aviso no relatório final.
 5. **Para cada fase custom, criar TODOS os campos antes de avançar pra próxima.** Guarde `field_id` (e `field_internal_id`) por id lógico do campo. Campos `connector` resolvem `conector_tabela` → `table_id` real do passo 3.
@@ -172,12 +172,48 @@ Mostre exatamente 5 linhas:
 13. **Sequencial, sem paralelismo** — todas as etapas têm dependências (tables antes de fields `connector`; labels antes de automações com `add_label`; field_conditions depois de fields).
 14. **Falhou? Pare e reporte** com o erro completo. Não tente consertar — exceto pelo caso explícito do passo 8 (AI Agent partial-create recovery via `update_ai_agent`).
 
+### 6b. Seed opcional de cards de exemplo
+
+Após a criação estrutural completa (passo 6 todo), **antes** do relatório final:
+
+1. Use `AskUserQuestion` (single-select, 2 opções):
+   - **Sim, criar 10 cards de exemplo** — útil pra demo, teste de workflow ou treinamento do time.
+   - **Não, pipe vazio** — produção pura.
+
+2. **Se "Sim":**
+   - Gere 10 personas/casos coerentes com a categoria e contexto do template:
+     - `financeiro` (crédito, AP, despesas) → PJs brasileiras com CNPJ, razão social, faturamento, score realistas.
+     - `customer-success` (onboarding, ticket) → clientes B2B com contrato, segmento, MRR.
+     - `rh` → funcionários com CPF, departamento, cargo.
+     - `juridico` → contratos / partes / vigência.
+     - `comercial` → leads / oportunidades / pipeline value.
+     - `operacoes` → fornecedores / produtos / categorias.
+   - **Distribuição** (excluindo a fase `done`, que recebe apenas cards "completos"):
+     - 6 fases (5 ativas + 1 done): 2/2/2/2/1/1
+     - 5 fases (4 ativas + 1 done): 2/2/3/2/1
+     - 4 fases (3 ativas + 1 done): 3/3/3/1
+     - 3 fases (2 ativas + 1 done): 4/4/2
+   - Para cards em fases avançadas, **preencha também todos os campos das fases anteriores** (um card no Comitê precisa ter campos de KYC e Análise preenchidos consistentemente).
+   - Use `card.<id>.dados_realistas` — gere texto que faça sentido pro setor (não use `aaaa` ou `Lorem ipsum`).
+
+3. **Procedimento por card:**
+   - `create_card(pipe_id, title=<razão social ou similar>, fields={...start form fields}, skip_elicitation=True)` → guarda `card_id`. Card nasce no start form.
+   - Para cada fase intermediária no caminho até a fase final do card:
+     - `fill_card_phase_fields(card_id, phase_id=X, fields={...}, skip_elicitation=True)` para preencher a fase atual.
+     - `move_card_to_phase(card_id, destination_phase_id=Y)` para avançar.
+   - Não preencha campos da fase `done` em cards que NÃO estão lá (regra: dados só na fase em que o card está e nas anteriores).
+
+4. **Status durante seed**: `✓ Card N/10 criado (Alfa Tech) — em Análise de Crédito`.
+
+5. **Se falhar em algum card**: continua os outros, registra avisos no relatório final. Não aborta tudo.
+
 ### 7. Relatório final
 
 - `pipe_id`
 - URL: `https://app.pipefy.com/pipes/<pipe_id>`
 - Contagem: labels, tables (+ colunas), fases, campos, condições de campo, automações, AI agents, webhooks criados
 - Fases default deletadas (3 esperadas; se < 3, listar quais sobraram com motivo)
+- Cards de exemplo criados (se aplicável, com a distribuição final por fase)
 - **TODOs manuais pós-criação (sempre listar):**
   - Webhook(s) pulados por URL inválida (se houver)
   - Popular database tables vazias (se houver)
