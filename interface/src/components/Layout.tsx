@@ -17,6 +17,14 @@ export function Layout({ children }: Props) {
               <span className="brand-sub">Catálogo de templates Pipefy</span>
             </span>
           </Link>
+          <a
+            href="https://github.com/maurivan/pipefy-agentic-store"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="header-cta"
+          >
+            Ver no GitHub →
+          </a>
         </div>
       </header>
       <main className="main">{children}</main>
