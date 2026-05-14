@@ -146,6 +146,15 @@ Mostre exatamente 5 linhas:
    - Uma vez por pipe, chame `get_automation_events(pipe_id)` e `get_automation_actions(pipe_id)` pra validar `event_ids`/`action_types` suportados; cache os resultados.
    - Resolva referências antes de criar: `quando.fase` → `phase_id` real; `entao.label` → `label_id` real; `{{ card.<campo> }}` permanece literal.
    - Use `create_automation` com o `action_type` retornado por `get_automation_actions`.
+   - **Triagem automática de automações que devem ser puladas**:
+     - `tipo: email` (depende de `email_template_id` que não pode ser criado via API).
+     - `tipo: add_label` (action inexistente no catálogo Pipefy).
+     - `tipo: send_http_request` cuja `url` contém `{{` (Pipefy faz URL-validation strict antes do template substitution — recurso só funciona via UI).
+   - Para essas, **PULA** e registre como TODO manual no relatório final.
+   - **Mapeamento campo → ação** para tipos que funcionam:
+     - `tipo: move_single_card` → `action_id: "move_single_card"` + `action_params: {"to_phase_id": "<phase_id>"}`
+     - `tipo: send_http_request` (sem template em URL) → `action_id: "send_http_request"` + `action_params: {"url": "...", "httpMethod": "GET|POST|PUT|DELETE", "headers": "<JSON string>", "body": "<JSON string>"}`
+     - `tipo: update_card_field` → `action_id: "update_card_field"` + `action_params: {"fields_map_order": [...]}`
 8. **Para cada AI Agent:**
    - `get_pipe(pipe_id)` → pegue `pipe.uuid` como `repo_uuid`.
    - `get_automation_events(pipe_id)` / `get_automation_actions(pipe_id)` — reaproveite os caches do passo 7 se já feitos.
@@ -181,6 +190,13 @@ Mostre exatamente 5 linhas:
 - **`AutomationEventParamsInput` é case-misto**: `to_phase_id` (snake) + `triggerFieldIds` (camel) na mesma API.
 - **`triggerFieldIds` quer `internal_id`**, não slug.
 - **Pipefy cria 3 fases default** (`Inbox`/`Doing`/`Done`) em todo pipe novo — a skill deleta automaticamente no passo 4b após criar as fases custom (`delete_phase` exige `confirm=True`).
+- **`AutomationActionParamsInput` para `send_http_request`**:
+  - Campo é `httpMethod` (camelCase), **não `http_method`**.
+  - `headers` é **String JSON-serializada**, não objeto: `"{\"Accept\": \"application/json\"}"`.
+  - Demais campos HTTP: `url` (String), `body` (String), `authenticationType` (enum), `authenticationKey`, `authenticationValue`, `authenticationAddTo`.
+- **`send_http_request` rejeita URLs templates** tipo `https://api.exemplo.com/{{field}}` com `"Invalid URL"`. Pipefy faz **validação strict de URL antes da substituição de variáveis** — sintaxe de templating em URL deve ser descoberta via export da UI. Se o template tiver `{{` na URL, **PULA a automação** e registre como TODO manual.
+- **`AutomationActionParamsInput` para `move_single_card`**: campo é `to_phase_id` (snake_case). Aceita `field_updated` como trigger apesar de `triggerEvents=["card_moved", "all_children_in_phase"]` (o `triggerEvents` é informativo; a regra real é o `actionsBlacklist` do evento).
+- **`add_label` NÃO existe como action**. Confirmado via `get_automation_actions` em 2026-05-14. Lista real: `generate_with_ai`, `send_a_task`, `send_email_template`, `move_single_card`, `update_card_field`, `create_connected_card`, `create_card`, `move_parent_card`, `distribute_assignments`, `run_a_formula`, `send_http_request`, `apply_sla_rules`, `schedule_create_card`, `move_multiple_cards`. Se o template usa `tipo: add_label`, **PULA** e documente como uso manual.
 
 ## Regras
 
